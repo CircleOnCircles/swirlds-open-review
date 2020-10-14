@@ -282,7 +282,7 @@ class SyncListener implements Runnable {
 			}
 			return true;
 		} else if (b == SyncConstants.commStateRequest) {
-			log.debug(RECONNECT.getMarker(), "{} got commStateRequest from {}", platform.getSelfId(), otherId);
+			log.info(RECONNECT.getMarker(), "{} got commStateRequest from {}", platform.getSelfId(), otherId);
 
 			try (AutoCloseableWrapper<SignedState> stateWrapper =
 						 platform.getSignedStateManager().getLastCompleteSignedState()) {
@@ -292,7 +292,7 @@ class SyncListener implements Runnable {
 				platform.getSignedStateManager().jsonifySignedState(stateWrapper.get(), StateDumpSource.RECONNECT);
 
 				final int oid = otherId.getIdAsInt();
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
 						"Starting reconnect in the role of the sender",
 						false,
 						platform.getSelfId().getIdAsInt(),
@@ -302,7 +302,7 @@ class SyncListener implements Runnable {
 				ReconnectSender sender = new ReconnectSender(conn, stateWrapper.get());
 				sender.execute();
 
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
 						"Finished reconnect in the role of the sender.",
 						false,
 						platform.getSelfId().getIdAsInt(),

@@ -29,9 +29,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -270,15 +267,20 @@ public class SigSet implements FastCopyable<SigSet>, SelfSerializable {
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
 
-		if (o == null || getClass() != o.getClass()) return false;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		SigSet sigSet = (SigSet) o;
 
 		if (sigInfos.length() != sigSet.sigInfos.length()) {
 			return false;
 		}
+
 		for (int i = 0; i < sigInfos.length(); i++) {
 			if (!Objects.equals(sigInfos.get(i), sigSet.sigInfos.get(i))) {
 				return false;

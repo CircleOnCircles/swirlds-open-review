@@ -20,20 +20,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 class SyncShadowEvent {
-	Event event; // the real event
-	SyncShadowEvent selfParent, otherParent;
-	List<SyncShadowEvent> selfChildren, otherChildren;
-	long sequenceNumber;
-	long searchMark, syncMark;
+	final Event event; // the real event
+	final List<SyncShadowEvent> selfChildren;
+	final List<SyncShadowEvent> otherChildren;
 
-	SyncShadowEvent(Event event, SyncShadowEvent selfParent, SyncShadowEvent otherParent) {
+	SyncShadowEvent selfParent;
+	SyncShadowEvent otherParent;
+	long sequenceNumber;
+	long searchMark;
+	long syncMark;
+
+	SyncShadowEvent(final Event event, final SyncShadowEvent selfParent, final SyncShadowEvent otherParent) {
 		this(event);
 		setSelfParent(selfParent);
 		setOtherParent(otherParent);
 		this.sequenceNumber = event.getSeq();
 	}
 
-	SyncShadowEvent(Event event) {
+	SyncShadowEvent(final Event event) {
 		this.event = event;
 		this.selfParent = null;
 		this.otherParent = null;
@@ -46,7 +50,7 @@ class SyncShadowEvent {
 	 * The hash of a event shadow is the hash of the event
 	 */
 	Hash getBaseEventHash() {
-		return ((EventImpl) event).getBaseHash();
+		return event.getBaseHash();
 	}
 
 	boolean isTip() {
@@ -65,74 +69,95 @@ class SyncShadowEvent {
 		removeSelfParent();
 		removeOtherParent();
 
-		for(SyncShadowEvent s : selfChildren)
+		for (SyncShadowEvent s : selfChildren) {
 			s.selfParent = null;
-		for(SyncShadowEvent s : otherChildren)
-			s.otherParent= null;
+		}
+		
+		for (SyncShadowEvent s : otherChildren) {
+			s.otherParent = null;
+		}
 
 		selfChildren.clear();
 		otherChildren.clear();
 	}
 
-	boolean hasSelfDescendant(SyncShadowEvent y) {
-		if(y == null)
+	boolean hasSelfDescendant(final SyncShadowEvent y) {
+		if (y == null) {
 			return false;
-		if(this == y)
-			return true;
+		}
 
-		for(SyncShadowEvent sc : this.selfChildren)
-			if(sc.hasSelfDescendant(y))
+		if (this == y) {
+			return true;
+		}
+
+		for (final SyncShadowEvent sc : this.selfChildren) {
+			if (sc.hasSelfDescendant(y)) {
 				return true;
+			}
+		}
 
 		return false;
 	}
 
-	boolean hasDescendant(SyncShadowEvent y) {
-		if(y == null)
+	boolean hasDescendant(final SyncShadowEvent y) {
+		if (y == null) {
 			return false;
-		if(this == y)
+		}
+
+		if (this == y) {
 			return true;
+		}
 
-		for(SyncShadowEvent sc : this.selfChildren)
-			if(sc.hasDescendant(y))
+		for (final SyncShadowEvent sc : this.selfChildren) {
+			if (sc.hasDescendant(y)) {
 				return true;
+			}
+		}
 
-		for(SyncShadowEvent oc : this.otherChildren)
-			if(oc.hasDescendant(y))
+		for (final SyncShadowEvent oc : this.otherChildren) {
+			if (oc.hasDescendant(y)) {
 				return true;
+			}
+		}
 
 		return false;
 	}
 
 
-	void addSelfChild(SyncShadowEvent s) {
-		if (s != null)
+	void addSelfChild(final SyncShadowEvent s) {
+		if (s != null) {
 			s.setSelfParent(this);
+		}
 	}
 
-	void addOtherChild(SyncShadowEvent s) {
-		if (s != null)
+	void addOtherChild(final SyncShadowEvent s) {
+		if (s != null) {
 			s.setOtherParent(this);
+		}
 	}
 
-	void setSelfParent(SyncShadowEvent s) {
+	void setSelfParent(final SyncShadowEvent s) {
 		if (s != null) {
 			selfParent = s;
-			if (!s.selfChildren.contains(s))
+
+			if (!s.selfChildren.contains(s)) {
 				s.selfChildren.add(this);
-		}
-		else
+			}
+		} else {
 			removeSelfParent();
+		}
 	}
 
-	void setOtherParent(SyncShadowEvent s) {
+	void setOtherParent(final SyncShadowEvent s) {
 		if (s != null) {
 			otherParent = s;
-			if (!s.otherChildren.contains(s))
+
+			if (!s.otherChildren.contains(s)) {
 				s.otherChildren.add(this);
-		}
-		else
+			}
+		} else {
 			removeOtherParent();
+		}
 	}
 
 	void removeSelfParent() {
@@ -150,12 +175,14 @@ class SyncShadowEvent {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o)
+	public boolean equals(final Object o) {
+		if (this == o) {
 			return true;
+		}
 
-		if (!(o instanceof SyncShadowEvent))
+		if (!(o instanceof SyncShadowEvent)) {
 			return false;
+		}
 
 		final SyncShadowEvent s = (SyncShadowEvent) o;
 

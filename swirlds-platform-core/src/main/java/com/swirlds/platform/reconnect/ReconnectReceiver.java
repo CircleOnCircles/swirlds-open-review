@@ -127,12 +127,12 @@ public class ReconnectReceiver {
 		// send the request
 		dos.write(SyncConstants.commStateRequest);
 		dos.flush();
-		log.debug(RECONNECT.getMarker(), "{} sent commStateRequest to {}", selfId, otherId);
+		log.info(RECONNECT.getMarker(), "{} sent commStateRequest to {}", selfId, otherId);
 
 		// read the response
 		byte stateResponse = dis.readByte();
 		if (stateResponse == SyncConstants.commStateAck) {
-			log.debug(RECONNECT.getMarker(), "{} got commStateAck from {}", platform.getSelfId(), otherId);
+			log.info(RECONNECT.getMarker(), "{} got commStateAck from {}", platform.getSelfId(), otherId);
 		} else if (stateResponse == SyncConstants.commStateNack) {
 			throw new ReconnectException("Node is unwilling to reconnect right now.");
 		} else {
@@ -167,7 +167,7 @@ public class ReconnectReceiver {
 	private void validate() throws ReconnectException {
 
 		// validate the signatures from the received state
-		log.debug(RECONNECT.getMarker(), "Validating signatures of the received state");
+		log.info(RECONNECT.getMarker(), "Validating signatures of the received state");
 		int numSigs = signedState.getSigSet().getNumMembers();
 		Future<Boolean>[] validFutures = new Future[numSigs];
 		for (int i = 0; i < numSigs; i++) {
@@ -199,9 +199,9 @@ public class ReconnectReceiver {
 			}
 		}
 
-		log.debug(RECONNECT.getMarker(), "Signed State valid Stake :{} ", validStake);
-		log.debug(RECONNECT.getMarker(), "AddressBook Stake :{} ", addressBook.getTotalStake());
-		log.debug(RECONNECT.getMarker(), "StrongMinority status: {}",
+		log.info(RECONNECT.getMarker(), "Signed State valid Stake :{} ", validStake);
+		log.info(RECONNECT.getMarker(), "AddressBook Stake :{} ", addressBook.getTotalStake());
+		log.info(RECONNECT.getMarker(), "StrongMinority status: {}",
 				Utilities.isStrongMinority(validStake, addressBook.getTotalStake()));
 		if (!Utilities.isStrongMinority(validStake, addressBook.getTotalStake())) {
 			throw new ReconnectException(String.format(
@@ -210,14 +210,14 @@ public class ReconnectReceiver {
 					validCount, addressBook.getSize(), validStake, addressBook.getTotalStake()));
 		}
 
-		log.debug(RECONNECT.getMarker(), "State is valid");
+		log.info(RECONNECT.getMarker(), "State is valid");
 	}
 
 	/**
 	 * Copy the signatures for the state from the other node.
 	 */
 	private void receiveSignatures() throws IOException {
-		log.debug(RECONNECT.getMarker(), "Receiving signed state signatures");
+		log.info(RECONNECT.getMarker(), "Receiving signed state signatures");
 		SigSet sigSet = new SigSet(addressBook);
 		sigSet.deserialize(connection.getDis(), sigSet.getVersion());
 		signedState.setSigSet(sigSet);

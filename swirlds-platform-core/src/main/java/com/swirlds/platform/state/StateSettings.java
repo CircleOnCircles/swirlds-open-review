@@ -43,15 +43,13 @@ public class StateSettings extends SubSetting {
 	/**
 	 * Events this many rounds old are expired, and can be deleted from memory
 	 */
-	// TODO (06 October 2020) Restore from parent branch.
-	public int roundsExpired = 15;
+	public int roundsExpired = 500;
 
 	/**
 	 * Events this many rounds old are ancient, so if they don't have consensus yet, they're stale, and will
 	 * never have their transactions handled.
 	 */
-	// TODO (06 October 2020) Restore from parent branch.
-	public int roundsStale = 8;
+	public int roundsStale = 25;
 
 	/**
 	 * Enabling the process of recovering signed state by playing back event files

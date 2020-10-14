@@ -14,9 +14,9 @@
 package com.swirlds.common;
 
 import com.swirlds.common.crypto.SerializablePublicKey;
+import com.swirlds.common.io.SelfSerializable;
 import com.swirlds.common.io.SerializableDataInputStream;
 import com.swirlds.common.io.SerializableDataOutputStream;
-import com.swirlds.common.io.SelfSerializable;
 
 import java.io.IOException;
 import java.security.PublicKey;
@@ -91,6 +91,7 @@ public class Address implements SelfSerializable {
 	 * SerializablePublicKey, SerializablePublicKey, SerializablePublicKey, String)}
 	 * but with different key types.
 	 * Deprecated, should use the method mentioned above.
+	 *
 	 * @param id
 	 * 		the ID for that member
 	 * @param nickname
@@ -766,8 +767,14 @@ public class Address implements SelfSerializable {
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		Address address = (Address) o;
 		return id == address.id &&
 				ownHost == address.ownHost &&

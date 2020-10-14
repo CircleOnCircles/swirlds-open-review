@@ -60,7 +60,7 @@ public interface Cryptography {
 	 * 		the message contents to be hashed
 	 * @return a {@link Future} containing the cryptographic hash for the given message contents when resolved
 	 */
-	default Future<byte[]> digestAsync(final byte[] message) {
+	default Future<Hash> digestAsync(final byte[] message) {
 		return digestAsync(message, DigestType.SHA_384);
 	}
 
@@ -75,7 +75,7 @@ public interface Cryptography {
 	 * 		the type of digest used to compute the hash
 	 * @return a {@link Future} containing the cryptographic hash for the given message contents when resolved
 	 */
-	Future<byte[]> digestAsync(final byte[] message, final DigestType digestType);
+	Future<Hash> digestAsync(final byte[] message, final DigestType digestType);
 
 	/**
 	 * Computes a cryptographic hash (message digest) for the given message. The resulting hash value will be
@@ -88,7 +88,7 @@ public interface Cryptography {
 	 * @throws CryptographyException
 	 * 		if an unrecoverable error occurs while computing the digest
 	 */
-	byte[] digestSync(final Message message);
+	Hash digestSync(final Message message);
 
 	/**
 	 * Computes a cryptographic hash (message digest) for the given list of messages. The resulting hash value will be
@@ -112,7 +112,7 @@ public interface Cryptography {
 	 * @throws CryptographyException
 	 * 		if an unrecoverable error occurs while computing the digest
 	 */
-	default byte[] digestSync(final byte[] message) {
+	default Hash digestSync(final byte[] message) {
 		return digestSync(message, DigestType.SHA_384);
 	}
 
@@ -127,7 +127,7 @@ public interface Cryptography {
 	 * @throws CryptographyException
 	 * 		if an unrecoverable error occurs while computing the digest
 	 */
-	byte[] digestSync(final byte[] message, final DigestType digestType);
+	Hash digestSync(final byte[] message, final DigestType digestType);
 
 	/**
 	 * Same as {@link #digestSync(SelfSerializable, DigestType)} with DigestType set to SHA_384
@@ -290,7 +290,7 @@ public interface Cryptography {
 	 * 		the type of digest used to compute the hash
 	 * @return the {@link FutureMerkleHash} for the {@link MerkleNode} object
 	 */
-	FutureMerkleHash digestTreeAsync(final MerkleNode root, final DigestType digestType);
+	Future<Hash> digestTreeAsync(final MerkleNode root, final DigestType digestType);
 
 	/**
 	 * Same as {@link #digestTreeAsync(MerkleNode, DigestType)}  with DigestType set to SHA_384
@@ -299,7 +299,7 @@ public interface Cryptography {
 	 * 		the root of the tree to hash
 	 * @return the {@link FutureMerkleHash} for the {@link MerkleNode} object
 	 */
-	default FutureMerkleHash digestTreeAsync(final MerkleNode root) {
+	default Future<Hash> digestTreeAsync(final MerkleNode root) {
 		return digestTreeAsync(root, DigestType.SHA_384);
 	}
 

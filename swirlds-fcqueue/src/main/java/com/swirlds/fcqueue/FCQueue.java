@@ -25,6 +25,7 @@ import com.swirlds.common.io.SerializableDataOutputStream;
 import com.swirlds.common.io.SerializedObjectProvider;
 import com.swirlds.common.list.ListDigestException;
 import com.swirlds.common.merkle.utility.AbstractMerkleLeaf;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,6 +38,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
 import static com.swirlds.common.ByteUtils.toBytes;
 import static com.swirlds.common.ByteUtils.toLong;
@@ -82,8 +84,9 @@ public class FCQueue<E extends FCQueueElement<E>> extends AbstractMerkleLeaf imp
 	/** Maximum number of elements FCQueue supports */
 	public static final int MAX_ELEMENTS = 100_000_000;
 
-	/** Calculate hash as: sum hash, rolling hash, Merkle hash.
-	 *  rolling hash is recommended for now (unless Merkle is tried and found fast enough)
+	/**
+	 * Calculate hash as: sum hash, rolling hash, Merkle hash.
+	 * rolling hash is recommended for now (unless Merkle is tried and found fast enough)
 	 */
 	private static final HashAlgorithm HASH_ALGORITHM = HashAlgorithm.ROLLING_HASH;
 
@@ -259,97 +262,119 @@ public class FCQueue<E extends FCQueueElement<E>> extends AbstractMerkleLeaf imp
 	 */
 	@Override
 	public boolean add(final E o) {
+		final StopWatch watch = new StopWatch();
+
+		watch.start();
 		synchronized (original) {
+			watch.stop();
+			FCQueueStatistics.fcqAddLockAcquisitionMicros.recordValue(watch.getTime(TimeUnit.MICROSECONDS));
+			watch.reset();
 
-			if (isImmutable()) {
-				throw new IllegalStateException("tried to modify an immutable FCQueue");
-			}
+			try {
+				watch.start();
 
-			if (o == null) {
-				throw new NullPointerException("tried to add a null element into an FCQueue");
-			}
-
-			if (this.size() >= MAX_ELEMENTS) {
-				throw new IllegalStateException(
-						String.format("tried to add an element to an FCQueue whose size has reached MAX_ELEMENTS: %d",
-								MAX_ELEMENTS));
-			}
-
-			final FCQueueNode<E> node;
-
-			if (tail == null) { //current list is empty
-				node = new FCQueueNode<>(o);
-				head = node;
-			} else { //current list is nonempty, so add to the tail
-				node = this.tail.insertAtTail(o);
-				node.towardHead = tail;
-				node.towardTail = null;
-				tail.towardTail = node;
-				tail.decRefCount();
-			}
-
-			tail = node;
-
-			size++;
-			threeToSize *= 3;
-			numChanges++;
-
-			final byte[] elementHash;
-
-			elementHash = getHash(o);
-
-			if (HASH_ALGORITHM == HashAlgorithm.SUM_HASH) {
-				// This is treated as a "set", not "list", so changing the order does not change the hash. The hash is
-				// the sum of the hashes of the elements, modulo 2^384.
-				//
-				// Note, for applications like Hedera, for the queue of receipts or queue of records, each element of
-				// the queue will have a unique  timestamp, and they will always be sorted by those timestamps. So the
-				// hash of the set is equivalent to the hash of a list. But if it is ever required to have a hash of a
-				// list, then the rolling hash is better (HASH_ALGORITHM 1).
-
-				// perform hash = (hash + elementHash) mod 2^^384
-				int carry = 0;
-				for (int i = 0; i < hash.length; i++) {
-					carry += (hash[i] & 0xff) + (elementHash[i] & 0xff);
-					hash[i] = (byte) carry;
-					carry >>= 8;
+				if (isImmutable()) {
+					throw new IllegalStateException("tried to modify an immutable FCQueue");
 				}
-			} else if (HASH_ALGORITHM == HashAlgorithm.ROLLING_HASH) {
-				// This is a rolling hash, so it takes into account the order.
-				// if the queue contains {a,b,c,d}, where "a" is the head and "d" is the tail, then define:
-				//
-				//    hash64({a,b,c,d}) = a * 3^^3 + b * 3^^2 + c * 3^^1 + d * 3^^0 mod 2^^64
-				//    hash64({a,b,c})   = a * 3^^2 + b * 3^^1 + c * 3^^0            mod 2^^64
-				//    hash64({b,c,d})   = b * 3^^2 + c * 3^^1 + d * 3^^0            mod 2^^64
-				//
-				//    Which implies these:
-				//
-				//    hash64({a,b,c,d}) = hash64({a,b,c}) * 3 + d                   mod 2^^64     //add(d)
-				//    hash64({b,c,d})   = hash64({a,b,c,d}) - a * 3^^3              mod 2^^64     //remove() deletes a
-				//
-				// so we add an element by multiplying by 3 and adding the new element's hash,
-				// and we remove an element by subtracting that element times 3 to the power of the resulting size.
-				//
-				// This is all easy to do for a 64-bit hash by keeping track of 3^^size modulo 2^^64, and multiplying
-				// it by 3 every time the size increments, and multiplying by the inverse of 3 each time it decrements.
-				// The multiplicative inverse of 3 modulo 2^^64 is 0xaaaaaaaaaaaaaaab (that's 15 a digits then a b).
-				//
-				// It would be much slower to use modulo 2^^384, but we don't have to do that. We can treat the
-				// 48-byte hash as a sequence of 6 numbers, each of which is an unsigned 64 bit integer.  We do this
-				// rolling hash on each of the 6 numbers independently. Then it ends up being simple and fast
 
-				for (int i = 0; i < 48; i += 8) { //process 8 bytes at a time
-					long old = toLong(hash, i);
-					long elm = toLong(elementHash, i);
-					toBytes(old * 3 + elm, hash, i);
+				if (o == null) {
+					throw new NullPointerException("tried to add a null element into an FCQueue");
 				}
-			} else if (HASH_ALGORITHM == HashAlgorithm.MERKLE_HASH) {
-				throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
-			} else { //invalid hashAlg choice
-				throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
-			}
 
-			return true;
+				if (this.size() >= MAX_ELEMENTS) {
+					throw new IllegalStateException(
+							String.format(
+									"tried to add an element to an FCQueue whose size has reached MAX_ELEMENTS: %d",
+									MAX_ELEMENTS));
+				}
+
+				final FCQueueNode<E> node;
+
+				if (tail == null) { //current list is empty
+					node = new FCQueueNode<>(o);
+					head = node;
+				} else { //current list is nonempty, so add to the tail
+					node = this.tail.insertAtTail(o);
+					node.towardHead = tail;
+					node.towardTail = null;
+					tail.towardTail = node;
+					tail.decRefCount();
+				}
+
+				tail = node;
+
+				size++;
+				threeToSize *= 3;
+				numChanges++;
+
+				final byte[] elementHash = getHash(o);
+
+				// Store the hash of the hash with the FCQueueNode
+				node.elementHashOfHash = elementHash;
+
+				if (HASH_ALGORITHM == HashAlgorithm.SUM_HASH) {
+					// This is treated as a "set", not "list", so changing the order does not change the hash. The
+					// hash is
+					// the sum of the hashes of the elements, modulo 2^384.
+					//
+					// Note, for applications like Hedera, for the queue of receipts or queue of records, each
+					// element of
+					// the queue will have a unique  timestamp, and they will always be sorted by those timestamps. So
+					// the
+					// hash of the set is equivalent to the hash of a list. But if it is ever required to have a hash
+					// of a
+					// list, then the rolling hash is better (HASH_ALGORITHM 1).
+
+					// perform hash = (hash + elementHash) mod 2^^384
+					int carry = 0;
+					for (int i = 0; i < hash.length; i++) {
+						carry += (hash[i] & 0xff) + (elementHash[i] & 0xff);
+						hash[i] = (byte) carry;
+						carry >>= 8;
+					}
+				} else if (HASH_ALGORITHM == HashAlgorithm.ROLLING_HASH) {
+					// This is a rolling hash, so it takes into account the order.
+					// if the queue contains {a,b,c,d}, where "a" is the head and "d" is the tail, then define:
+					//
+					//    hash64({a,b,c,d}) = a * 3^^3 + b * 3^^2 + c * 3^^1 + d * 3^^0 mod 2^^64
+					//    hash64({a,b,c})   = a * 3^^2 + b * 3^^1 + c * 3^^0            mod 2^^64
+					//    hash64({b,c,d})   = b * 3^^2 + c * 3^^1 + d * 3^^0            mod 2^^64
+					//
+					//    Which implies these:
+					//
+					//    hash64({a,b,c,d}) = hash64({a,b,c}) * 3 + d                   mod 2^^64     //add(d)
+					//    hash64({b,c,d})   = hash64({a,b,c,d}) - a * 3^^3              mod 2^^64     //remove()
+					//    deletes a
+					//
+					// so we add an element by multiplying by 3 and adding the new element's hash,
+					// and we remove an element by subtracting that element times 3 to the power of the resulting size.
+					//
+					// This is all easy to do for a 64-bit hash by keeping track of 3^^size modulo 2^^64, and
+					// multiplying
+					// it by 3 every time the size increments, and multiplying by the inverse of 3 each time it
+					// decrements.
+					// The multiplicative inverse of 3 modulo 2^^64 is 0xaaaaaaaaaaaaaaab (that's 15 a digits then a b).
+					//
+					// It would be much slower to use modulo 2^^384, but we don't have to do that. We can treat the
+					// 48-byte hash as a sequence of 6 numbers, each of which is an unsigned 64 bit integer.  We do this
+					// rolling hash on each of the 6 numbers independently. Then it ends up being simple and fast
+
+					for (int i = 0; i < 48; i += 8) { //process 8 bytes at a time
+						long old = toLong(hash, i);
+						long elm = toLong(elementHash, i);
+						toBytes(old * 3 + elm, hash, i);
+					}
+				} else if (HASH_ALGORITHM == HashAlgorithm.MERKLE_HASH) {
+					throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
+				} else { //invalid hashAlg choice
+					throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
+				}
+
+				return true;
+			} finally {
+				watch.stop();
+				FCQueueStatistics.fcqAddExecutionMicros.recordValue(watch.getTime(TimeUnit.MICROSECONDS));
+			}
 		}
 	}
 
@@ -364,61 +389,76 @@ public class FCQueue<E extends FCQueueElement<E>> extends AbstractMerkleLeaf imp
 	 */
 	@Override
 	public E remove() {
+		final StopWatch watch = new StopWatch();
+
+		watch.start();
 		synchronized (original) {
+			watch.stop();
+			FCQueueStatistics.fcqRemoveLockAcquisitionMicros.recordValue(watch.getTime(TimeUnit.MICROSECONDS));
+			watch.reset();
 
-			final FCQueueNode<E> oldHead = head;
+			watch.start();
 
-			if (isImmutable()) {
-				throw new IllegalArgumentException("tried to remove from an immutable FCQueue");
-			}
+			try {
 
-			if (size == 0 || head == null) {
-				throw new NoSuchElementException("tried to remove from an empty FCQueue");
-			}
+				final FCQueueNode<E> oldHead = head;
 
-			final E element = head.element;
-			head = head.towardTail;
-
-			if (head == null) { //if just removed the last one, then tail should be null, too
-				tail.decRefCount();
-				tail = null;
-			} else {
-				head.incRefCount();
-			}
-
-			oldHead.decRefCount(); //this will garbage collect the old head, if no copies point to it
-			size--;
-			threeToSize *= INVERSE_3;
-			numChanges++;
-
-			final byte[] elementHash;
-
-			elementHash = getHash(element);
-
-			if (HASH_ALGORITHM == HashAlgorithm.SUM_HASH) {
-				// do hash = (hash - elementHash) mod 2^^384
-
-				int carry = 0;
-				for (int i = 0; i < hash.length; i++) {
-					carry += (hash[i] & 0xff) - (elementHash[i] & 0xff);
-					hash[i] = (byte) carry;
-					carry >>= 8;
+				if (isImmutable()) {
+					throw new IllegalArgumentException("tried to remove from an immutable FCQueue");
 				}
-			} else if (HASH_ALGORITHM == HashAlgorithm.ROLLING_HASH) {
-				//see comments in add() about the rolling hash
 
-				for (int i = 0; i < 48; i += 8) {//process 8 bytes at a time
-					long old = toLong(hash, i);
-					long elm = toLong(elementHash, i);
-					toBytes(old - elm * threeToSize, hash, i);
+				if (size == 0 || head == null) {
+					throw new NoSuchElementException("tried to remove from an empty FCQueue");
 				}
-			} else if (HASH_ALGORITHM == HashAlgorithm.MERKLE_HASH) {
-				throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
-			} else { //invalid hashAlg choice
-				throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
-			}
 
-			return element;
+				// Retrieve the previously computed hash of the element's hash
+				final byte[] elementHash = head.elementHashOfHash;
+
+				// Retrieve the element and change the head pointer
+				final E element = head.element;
+				head = head.towardTail;
+
+				if (head == null) { //if just removed the last one, then tail should be null, too
+					tail.decRefCount();
+					tail = null;
+				} else {
+					head.incRefCount();
+				}
+
+				oldHead.decRefCount(); //this will garbage collect the old head, if no copies point to it
+				size--;
+				threeToSize *= INVERSE_3;
+				numChanges++;
+
+
+				if (HASH_ALGORITHM == HashAlgorithm.SUM_HASH) {
+					// do hash = (hash - elementHash) mod 2^^384
+
+					int carry = 0;
+					for (int i = 0; i < hash.length; i++) {
+						carry += (hash[i] & 0xff) - (elementHash[i] & 0xff);
+						hash[i] = (byte) carry;
+						carry >>= 8;
+					}
+				} else if (HASH_ALGORITHM == HashAlgorithm.ROLLING_HASH) {
+					//see comments in add() about the rolling hash
+
+					for (int i = 0; i < 48; i += 8) {//process 8 bytes at a time
+						long old = toLong(hash, i);
+						long elm = toLong(elementHash, i);
+						toBytes(old - elm * threeToSize, hash, i);
+					}
+				} else if (HASH_ALGORITHM == HashAlgorithm.MERKLE_HASH) {
+					throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
+				} else { //invalid hashAlg choice
+					throw new UnsupportedOperationException("Hash algorithm " + HASH_ALGORITHM + " is not supported");
+				}
+
+				return element;
+			} finally {
+				watch.stop();
+				FCQueueStatistics.fcqRemoveExecutionMicros.recordValue(watch.getTime(TimeUnit.MICROSECONDS));
+			}
 		}
 	}
 
@@ -452,7 +492,11 @@ public class FCQueue<E extends FCQueueElement<E>> extends AbstractMerkleLeaf imp
 	 */
 	@Override
 	public E poll() {
+		final StopWatch watch = new StopWatch();
+		watch.start();
 		synchronized (original) {
+			watch.stop();
+			FCQueueStatistics.fcqPollLockAcquisitionMicros.recordValue(watch.getTime(TimeUnit.MICROSECONDS));
 
 			if (this.head == null) {
 				return null;
@@ -866,9 +910,16 @@ public class FCQueue<E extends FCQueueElement<E>> extends AbstractMerkleLeaf imp
 
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		final FCQueue<?> fcQueue = (FCQueue<?>) o;
+		
 		return size == fcQueue.size &&
 				Arrays.equals(hash, fcQueue.hash);
 	}

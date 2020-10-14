@@ -102,7 +102,7 @@ public class ReconnectSender {
 	 * Copy the signed state from this node to the other node.
 	 */
 	private void reconnect() throws ExecutionException, InterruptedException {
-		log.debug(RECONNECT.getMarker(), "Starting synchronization in the role of the sender.");
+		log.info(RECONNECT.getMarker(), "Starting synchronization in the role of the sender.");
 
 		SendingSynchronizer synchronizer = new SendingSynchronizer(
 				new MerkleDataInputStream(connection.getDis(), false),
@@ -111,14 +111,14 @@ public class ReconnectSender {
 
 		synchronizer.synchronize();
 
-		log.debug(RECONNECT.getMarker(), "Finished synchronization in the role of the sender.");
+		log.info(RECONNECT.getMarker(), "Finished synchronization in the role of the sender.");
 	}
 
 	/**
 	 * Copy the signatures on the signed state from this node to the other node.
 	 */
 	private void sendSignatures() throws IOException {
-		log.debug(RECONNECT.getMarker(), "Sending state signatures.");
+		log.info(RECONNECT.getMarker(), "Sending state signatures.");
 		signedState.getSigSet().serialize(connection.getDos());
 		connection.getDos().flush();
 	}

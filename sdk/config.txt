@@ -7,7 +7,7 @@ swirld, 123
 # app,		GameDemo.jar,		   9000, 9000
 # app,		HelloSwirldDemo.jar
 # app,		CryptocurrencyDemo.jar
-# app,		StatsDemo.jar,		   1, 3000, 0, 100, -1, 200
+app,		StatsDemo.jar,		   1, 3000, 0, 100, -1, 200
 
 
 

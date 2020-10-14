@@ -97,6 +97,7 @@ public class RunningHashCalculator {
 					startWriteAtCompleteWindow,
 					Settings.eventStreamQueueCapacity);
 		}
+		
 		objectStreamCreator = new ObjectStreamCreator<>(initialHash, consumer);
 		threadCalcRunningHash = new StoppableThread("threadCalcRunningHash",
 				this::calcRunningHash, platform.getSelfId());
@@ -197,7 +198,9 @@ public class RunningHashCalculator {
 	/** Creates parent if necessary */
 	private static void directoryAssurance(String directory) {
 		File dir = new File(directory);
-		if (!dir.exists()) dir.mkdirs();
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
 	}
 
 	int getForStreamSize() {
@@ -229,9 +232,11 @@ public class RunningHashCalculator {
 	void stopAndClear() {
 		forRunningHash.clear();
 		threadCalcRunningHash.stop();
+
 		if (consumer != null) {
 			consumer.stopAndClear();
 		}
+
 		log.info(EVENT_STREAM.getMarker(), "threadCalcRunningHash stopped");
 	}
 }

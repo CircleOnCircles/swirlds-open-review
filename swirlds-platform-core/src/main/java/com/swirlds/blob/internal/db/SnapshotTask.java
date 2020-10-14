@@ -241,9 +241,13 @@ public class SnapshotTask {
 
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
 
-		if (!(o instanceof SnapshotTask)) return false;
+		if (!(o instanceof SnapshotTask)) {
+			return false;
+		}
 
 		final SnapshotTask that = (SnapshotTask) o;
 

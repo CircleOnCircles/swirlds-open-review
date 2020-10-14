@@ -37,7 +37,7 @@
 		<MarkerFilter marker="SYNC_DONE"              onMatch="DENY"    onMismatch="NEUTRAL"/>
 		<MarkerFilter marker="SYNC_ERROR"             onMatch="DENY"    onMismatch="NEUTRAL"/>
 		<MarkerFilter marker="SYNC"                   onMatch="DENY"    onMismatch="NEUTRAL"/>
-		<MarkerFilter marker="SYNC_SGM"               onMatch="ACCEPT"    onMismatch="NEUTRAL"/>
+		<MarkerFilter marker="SYNC_SGM"               onMatch="DENY"    onMismatch="NEUTRAL"/>
 		<MarkerFilter marker="HEARTBEAT"              onMatch="DENY"    onMismatch="NEUTRAL"/>
 
 		<!-- Platform Events (Debug) -->

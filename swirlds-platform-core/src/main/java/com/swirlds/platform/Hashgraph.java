@@ -18,6 +18,7 @@ import com.swirlds.common.AddressBook;
 import com.swirlds.common.NodeId;
 import com.swirlds.common.Transaction;
 import com.swirlds.common.crypto.CryptoFactory;
+import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.crypto.TransactionSignature;
 import com.swirlds.common.events.BaseEventHashedData;
 import com.swirlds.common.events.BaseEventUnhashedData;
@@ -202,6 +203,9 @@ class Hashgraph extends AbstractHashgraph {
 	long getMinGenerationNonAncient() {
 		return consensus.getMinGenerationNonAncient();
 	}
+
+	@Override
+	List<Hash> getJudgeHashes(long round) {return consensus.getJudgeHashes(round);}
 
 	private void startThreadPollIntakeQueue() {
 		threadPollIntakeQueue = new StoppableThread("pollIntakeQueue", this::intakeQueueHandler, platform.getSelfId());
@@ -967,7 +971,7 @@ class Hashgraph extends AbstractHashgraph {
 				// making V2's event be null.
 				// in processIntakeEvent(v1), its self parent's event would return null
 				if (selfParent == null) {
-					log.debug(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
+					log.error(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
 							"Self parent returned null, event: {}", validateEventTask);
 					validateEventTask.setEventNull();
 					return;
@@ -1006,7 +1010,7 @@ class Hashgraph extends AbstractHashgraph {
 				// making v2's event be null.
 				// in processIntakeEvent(v1), its other parent's event would return null
 				if (otherParent == null) {
-					log.debug(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
+					log.error(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
 							"Other parent returned null, event: {}", validateEventTask);
 					validateEventTask.setEventNull();
 					return;
@@ -1669,7 +1673,7 @@ class Hashgraph extends AbstractHashgraph {
 		}
 
 		if (delta > Settings.syncStaleEventCompThreshold) {
-			log.debug(RECONNECT.getMarker(),
+			log.info(RECONNECT.getMarker(),
 					"Failed to compensate for stale events during gossip due to delta exceeding threshold ( selfId = " +
 							"{}, otherId = {}, selfSeq = {}, otherSeq = " +
 							"{}, delta = {}, threshold = {} )",
@@ -1678,7 +1682,7 @@ class Hashgraph extends AbstractHashgraph {
 		}
 
 		lastSeq.set(selfId.getIdAsInt(), otherSeq);
-		log.debug(RECONNECT.getMarker(),
+		log.info(RECONNECT.getMarker(),
 				"Compensating for stale events during gossip ( selfId = {}, otherId = {}, selfSeq = {}, otherSeq = " +
 						"{}, delta = {} )",
 				selfId, otherId, selfSeq, otherSeq, delta);

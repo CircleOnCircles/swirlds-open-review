@@ -28,7 +28,7 @@ import java.util.List;
 public class RoundInfo {
 	/** the round this is about (0 is first) */
 	long round = 0;
-	// are all the famous witnesses known for this round?
+	// are all the famous witnesses known for this round and the judges are known?
 	boolean fameDecided = false;
 	// number of known witnesses in this round
 	int numWitnesses = 0;

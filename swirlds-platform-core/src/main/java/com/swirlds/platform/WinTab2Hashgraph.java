@@ -640,10 +640,14 @@ class WinTab2Hashgraph extends WinBrowser.PrePaintableJPanel {
 		final int i = (x / m) % (m / 2); // the ith Eulerian path on the complete graph of m-1 vertices
 		final int j = x % m;       // position along that ith path
 
-		if (j == m - 1)
+		if (j == m - 1) {
 			return m - 1; // add the mth vertex after each Eulerian path to get a Eulerian cycle
-		if ((j % 2) == 0)
+		}
+
+		if ((j % 2) == 0) {
 			return i + j / 2; // in a given path, every other vertex counts up
+		}
+
 		return (m - 2 + i - (j - 1) / 2) % (m - 1); // and every other vertex counts down
 	}
 }

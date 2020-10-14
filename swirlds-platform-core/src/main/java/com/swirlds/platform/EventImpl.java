@@ -32,6 +32,7 @@ import com.swirlds.common.io.SerializableDataInputStream;
 import com.swirlds.common.io.SerializableDataOutputStream;
 import com.swirlds.common.stream.Timestamped;
 import com.swirlds.platform.event.EventCounter;
+import com.swirlds.platform.event.EventUtils;
 import com.swirlds.platform.event.InternalEventData;
 import com.swirlds.platform.internal.CreatorSeqPair;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -211,9 +212,13 @@ public class EventImpl extends AbstractSerializableHashable implements Comparabl
 	 */
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
 
-		if (o == null || getClass() != o.getClass()) return false;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		final EventImpl event = (EventImpl) o;
 
@@ -604,23 +609,6 @@ public class EventImpl extends AbstractSerializableHashable implements Comparabl
 	}
 
 	/**
-	 * @return is roundCreated frozen (won't change with address book changes)? True if an ancestor of a famous
-	 * 		witness
-	 */
-	@JsonIgnore
-	public boolean isFrozen() {
-		return internalEventData.isFrozen();
-	}
-
-	/**
-	 * @param frozen
-	 * 		is roundCreated frozen (won't change with address book changes)? True if an ancestor of a famous witness
-	 */
-	public void setFrozen(boolean frozen) {
-		internalEventData.setFrozen(frozen);
-	}
-
-	/**
 	 * @param reachedConsTimestamp
 	 * 		the local time (not consensus time) at which the event reached consensus
 	 */
@@ -785,7 +773,9 @@ public class EventImpl extends AbstractSerializableHashable implements Comparabl
 	 * @param witnessSeq
 	 * 		n-1 for the nth witness added to a round (-1 if not a witness. Can be different on different computers)
 	 */
-	public void setWitnessSeq(int witnessSeq) { internalEventData.setWitnessSeq(witnessSeq); }
+	public void setWitnessSeq(int witnessSeq) {
+		internalEventData.setWitnessSeq(witnessSeq);
+	}
 
 	//////////////////////////////////////////
 	//	Event interface methods

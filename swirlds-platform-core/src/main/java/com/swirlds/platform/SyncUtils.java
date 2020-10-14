@@ -13,9 +13,9 @@
  */
 package com.swirlds.platform;
 
-import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.NodeId;
 import com.swirlds.common.Transaction;
+import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.events.BaseEventHashedData;
 import com.swirlds.common.events.BaseEventUnhashedData;
 import com.swirlds.common.io.BadIOException;
@@ -33,7 +33,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.SyncFailedException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -115,7 +114,6 @@ public class SyncUtils {
 		byteCount[0] += 2 * Long.BYTES;
 		return time;
 	}
-
 
 
 	/** read a byte[] from a data stream and increment byteCount[0] by the number of bytes */
@@ -206,7 +204,8 @@ public class SyncUtils {
 						dis.readSerializable(false, BaseEventUnhashedData::new);
 
 				ValidateEventTask validateEventTask = new ValidateEventTask(hashedData, unhashedData);
-				log.debug(SYNC_SGM.getMarker(), "{} <- {} `readUnknownEvents`: adding event with self-parent gen {} and self-parent hash {}",
+				log.debug(SYNC_SGM.getMarker(),
+						"{} <- {} `readUnknownEvents`: adding event with self-parent gen {} and self-parent hash {}",
 						id, otherId, hashedData.getSelfParentGen(), hashedData.getSelfParentHash());
 				platform.getHashgraph().addEvent(validateEventTask);
 
@@ -331,10 +330,11 @@ public class SyncUtils {
 		log.debug(TIME_MEASURE.getMarker(), "start sync {}-{}", selfId,
 				otherId);
 
-		if (caller)
+		if (caller) {
 			log.debug(SYNC_SGM.getMarker(), "{} -> {} `sync`: caller, start sync", selfId, otherId);
-		else
+		} else {
 			log.debug(SYNC_SGM.getMarker(), "{} <- {} `sync`: receiver, start sync", selfId, otherId);
+		}
 
 		////////// STEP 1: WRITE sync request (only for caller; listener READ already happened)
 
@@ -543,10 +543,12 @@ public class SyncUtils {
 			dos.flush();
 			bytesWritten.addAndGet(Byte.BYTES);
 			byte done = dis.readByte();
+
 			if (done != SyncConstants.commSyncDone) {
 				throw new BadIOException(
 						"received " + done + " instead of commSyncDone");
 			}
+
 			log.debug(SYNC.getMarker(),
 					"syncStep5: {} received commSyncDone from {}",
 					selfId, otherId);
@@ -606,10 +608,6 @@ public class SyncUtils {
 	}
 
 
-
-
-
-
 	/**
 	 * Write to a data stream the events that self has that the other member does not.
 	 * <p>
@@ -652,11 +650,15 @@ public class SyncUtils {
 		long syncByteCountAtStart = dos.getSyncByteCounter().getCount();
 		List<EventImpl> diffEvents = sgm.getSendEventList(selfId, otherId);
 
-		log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`: {} events to send",
+		log.debug(SYNC_SGM.getMarker(),
+				"{} -> {} `writeUnknownEvents`: {} events to send",
 				selfId, otherId, diffEvents.size());
-		for(EventImpl e : diffEvents)
-			log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`:   to be sent: {}",
+
+		for (EventImpl e : diffEvents) {
+			log.debug(SYNC_SGM.getMarker(),
+					"{} -> {} `writeUnknownEvents`:   to be sent: {}",
 					selfId, otherId, e.getBaseHash());
+		}
 
 		// Determine whether the remote has fallen behind.
 
@@ -665,7 +667,7 @@ public class SyncUtils {
 			c = otherCounts.get(i);
 			for (long j = c + 1; j <= currMyCounts[i]; j++) {
 				EventImpl e = platform.getHashgraph().getEventByCreatorSeq(i, j);
-				if(e == null) {  // invalid index returns a null, so don't waste memory adding it
+				if (e == null) {  // invalid index returns a null, so don't waste memory adding it
 
 					// The other member requested an event that self used to have, but doesn't now.
 					// That means the event was already discarded it because it was too old.
@@ -733,16 +735,20 @@ public class SyncUtils {
 
 			eventsWritten.incrementAndGet();
 			int ntransactions = event.getTransactions() == null ? 0 : event.getTransactions().length;
-			log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`: end send event {}, num transactions = {}", selfId, otherId, event.getBaseHash(), ntransactions);
+			log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`: end send event {}, num transactions = {}",
+					selfId, otherId, event.getBaseHash(), ntransactions);
 
 
 		}
-		log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`: sent {} events", selfId, otherId, diffEvents.size());
+		log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`: sent {} events", selfId, otherId,
+				diffEvents.size());
 		dos.writeByte(SyncConstants.commEventDone);
+
 		long bytesWritten = dos.getSyncByteCounter().getCount() - syncByteCountAtStart;
 		int bytesToWrite = slowDown
 				? (int) (1 + bytesWritten * Settings.throttle7extra)
 				: 0;
+
 		if (bytesToWrite > Settings.throttle7maxBytes) {
 			bytesToWrite = Settings.throttle7maxBytes;
 		}
@@ -753,7 +759,8 @@ public class SyncUtils {
 
 		platform.getStats().bytesPerSecondCatchupSent.update(bytesToWrite);
 
-		log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`: wrote {} bytes to slow down", selfId, otherId, bytesToWrite);
+		log.debug(SYNC_SGM.getMarker(), "{} -> {} `writeUnknownEvents`: wrote {} bytes to slow down", selfId, otherId,
+				bytesToWrite);
 
 		// record history of events written per sync
 		platform.getStats().avgEventsPerSyncSent.recordValue(eventsWritten.get());
@@ -761,14 +768,16 @@ public class SyncUtils {
 	}
 
 	private static long applySlowDown(boolean slowDown, long bytesWritten, SyncOutputStream dos) throws IOException {
-		if(!slowDown)
+		if (!slowDown) {
 			return 0;
+		}
 
-		long bytesToWrite = (long)(1 + bytesWritten * Settings.throttle7extra);
-		if (bytesToWrite > Settings.throttle7maxBytes)
+		long bytesToWrite = (long) (1 + bytesWritten * Settings.throttle7extra);
+		if (bytesToWrite > Settings.throttle7maxBytes) {
 			bytesToWrite = Settings.throttle7maxBytes;
+		}
 
-		byte[] randomBytes = new byte[(int)bytesToWrite];
+		byte[] randomBytes = new byte[(int) bytesToWrite];
 		new Random().nextBytes(randomBytes);
 		dos.writeByteArray(randomBytes, true);
 
@@ -779,8 +788,7 @@ public class SyncUtils {
 			NodeId selfId,
 			NodeId otherId,
 			DataOutputStream dos,
-			boolean canAcceptSync) throws IOException
-	{
+			boolean canAcceptSync) throws IOException {
 		dos.writeByte(canAcceptSync
 				? SyncConstants.commSyncAck
 				: SyncConstants.commSyncNack);
@@ -793,32 +801,31 @@ public class SyncUtils {
 	private static void sendSyncRequest(
 			NodeId selfId,
 			NodeId otherId,
-			DataOutputStream dos) throws IOException
-	{
+			DataOutputStream dos) throws IOException {
 		dos.writeByte(SyncConstants.commSyncRequest);
-		log.debug(SYNC_SGM.getMarker(), "{} -> {} : `requestSync       `: caller, sent {}", selfId, otherId, SyncConstants.commSyncRequest);
+		log.debug(SYNC_SGM.getMarker(), "{} -> {} : `requestSync       `: caller, sent {}", selfId, otherId,
+				SyncConstants.commSyncRequest);
 	}
 
 	private static void receiveSyncRequest(
 			NodeId selfId,
 			NodeId otherId,
-			DataInputStream dis) throws IOException
-	{
+			DataInputStream dis) throws IOException {
 		log.debug(SYNC_SGM.getMarker(), "{} <- {} : `receiveSyncRequest`: receiver", selfId, otherId);
 		byte done = dis.readByte();
 		if (done != SyncConstants.commSyncRequest) {
 			String msg = String.format("received %s instead of %s", done, SyncConstants.commSyncRequest);
 			throw new BadIOException(msg);
 		}
-		log.debug(SYNC_SGM.getMarker(), "{} <- {} : `receiveSyncRequest`: receiver, got {}", selfId, otherId, SyncConstants.commSyncRequest);
+		log.debug(SYNC_SGM.getMarker(), "{} <- {} : `receiveSyncRequest`: receiver, got {}", selfId, otherId,
+				SyncConstants.commSyncRequest);
 	}
 
 	private static boolean receiveSyncRequestResponse(
 			NodeId selfId,
 			NodeId otherId,
 			SyncInputStream dis,
-			long timeSyncRequestSent) throws IOException
-	{
+			long timeSyncRequestSent) throws IOException {
 		boolean accepted;
 
 		// Caller requested a sync, so now read if it was accepted
@@ -844,10 +851,11 @@ public class SyncUtils {
 		}
 
 
-		if(accepted)
+		if (accepted) {
 			log.debug(SYNC_SGM.getMarker(), "{} -> {} : request accepted", selfId, otherId);
-		else
+		} else {
 			log.debug(SYNC_SGM.getMarker(), "{} -> {} : request refused", selfId, otherId);
+		}
 
 		return accepted;
 	}
@@ -884,16 +892,12 @@ public class SyncUtils {
 			@Override
 			public Object syncCall() throws IOException {
 				if (!caller) {
-					List<Boolean> tipFlags = new ArrayList<>();
-					dis.readBooleanList(1000);
+					final int ntips = sgm.tips.size();
+					List<Boolean> tipFlags = dis.readBooleanList(ntips);
 					sgm.setReceivedTipFlags(tipFlags);
-					log.debug(SYNC_SGM.getMarker(), "{} <- {} `syncStep2aReadTipFlags`: finished, received {} tip flags", selfId, otherId, tipFlags.size());
-
-//					if(nflags != sgm.tips.size())
-//						throw new SyncFailedException(selfId + " <- " + otherId + " `syncStep2aReadTipFlags`: expected " + nflags + " tip flags, got " + sgm.tips.size() + " tip flags");
+					log.debug(SYNC_SGM.getMarker(), "{} <- {} `syncStep2aReadTipFlags`: finished, received {} tip " +
+							"flags", selfId, otherId, tipFlags.size());
 				}
-
-
 
 				return null;
 			}
@@ -967,21 +971,16 @@ public class SyncUtils {
 				if (!caller || syncAccepted) {
 
 					otherCountsLocal = dis.readAtomicLongArray(numberOfNodes);
-					log.debug(SYNC_SGM.getMarker(), "{} <- {} : `syncStep2aReadTipHashesAndCounts`: read {} counts", selfId, otherId, ((AtomicLongArray)otherCountsLocal).length());
+					log.debug(SYNC_SGM.getMarker(), "{} <- {} : `syncStep2aReadTipHashesAndCounts`: read {} counts",
+							selfId, otherId, ((AtomicLongArray) otherCountsLocal).length());
 
-					int nhashes = dis.readInt();
-					log.debug(SYNC_SGM.getMarker(), "{} <- {} : `syncStep2aReadTipHashesAndCounts`: received: other shadow graph has {} tip hashes", selfId, otherId, nhashes);
-
-					List<Hash> receivedTipHashes = new ArrayList<>();
-					for(int i = 0; i < nhashes; ++i) {
-						Hash hash = new Hash();
-						hash.deserialize(dis, 0);
-//						log.debug(SYNC_SGM.getMarker(), "{} <- {} : `syncStep2aReadTipHashesAndCounts`:    received tip hash {}", selfId, otherId, hash.toString());
-						receivedTipHashes.add(hash);
-					}
-
+					final List<Hash> receivedTipHashes = dis.readSerializableList(numberOfNodes * 1000, false,
+							() -> new Hash());
 					sgm.setReceivedTipHashes(receivedTipHashes);
-					log.debug(SYNC_SGM.getMarker(), "{} <- {} : `syncStep2aReadTipHashesAndCounts`: finished, received {} tip hashes", selfId, otherId, receivedTipHashes.size());
+
+					log.debug(SYNC_SGM.getMarker(),
+							"{} <- {} : `syncStep2aReadTipHashesAndCounts`: finished, received {} tip hashes", selfId,
+							otherId, receivedTipHashes.size());
 				}
 				// Both caller and listener always read the counts.
 				// But if the listener doesn't accept the sync,
@@ -991,7 +990,6 @@ public class SyncUtils {
 			}
 		};
 	}
-
 
 
 	/**
@@ -1030,27 +1028,34 @@ public class SyncUtils {
 									? "sent commSyncAck to accept the sync"
 									: "sent commSyncNack to refuse sync because busy"));
 				}
+
 				if (caller || canAcceptSync) {
 					dos.writeLongArray(myCounts);
-					log.debug(SYNC_SGM.getMarker(), "{} -> {} : `syncStep2bWriteTipHashesAndCounts`: sent {} counts", selfId, otherId, myCounts.length);
+					log.debug(SYNC_SGM.getMarker(), "{} -> {} : `syncStep2bWriteTipHashesAndCounts`: sent {} counts",
+							selfId, otherId, myCounts.length);
 
 					List<Hash> tipHashes = sgm.getSendTipHashes();
-					dos.writeInt(tipHashes.size());
-					log.debug(SYNC_SGM.getMarker(), "{} -> {} : `syncStep2bWriteTipHashesAndCounts`: sent: shadow graph has {} tip hashes", selfId, otherId, tipHashes.size());
-					for(Hash tipHash : tipHashes) {
-						dos.writeInt(tipHash.getDigestType().id());
-						dos.writeByteArray(tipHash.getValue());
-//						log.debug(SYNC_SGM.getMarker(), "{} -> {} : `syncStep2bWriteTipHashesAndCounts`:    sent tip hash     {}", selfId, otherId, tipHash.toString());
+					dos.writeSerializableList(tipHashes, false, true);
+					log.debug(SYNC_SGM.getMarker(),
+							"{} -> {} : `syncStep2bWriteTipHashesAndCounts`: sent: shadow graph has {} tip hashes",
+							selfId, otherId, tipHashes.size());
+					for (Hash tipHash : tipHashes) {
+						log.debug(
+								SYNC_SGM.getMarker(),
+								"{} -> {} : `syncStep2bWriteTipHashesAndCounts`:    sent tip hash     {}",
+								selfId, otherId, tipHash.toString());
 					}
 
-					log.debug(SYNC_SGM.getMarker(), "{} -> {} : `syncStep2bWriteTipHashesAndCounts`: finished, sent {} tip hashes", selfId, otherId, tipHashes.size());
+					log.debug(SYNC_SGM.getMarker(),
+							"{} -> {} : `syncStep2bWriteTipHashesAndCounts`: finished, sent {} tip hashes", selfId,
+							otherId, tipHashes.size());
 				}
+
 				dos.flush();
 				return null; // returned value is ignored by the caller
 			}
 		};
 	}
-
 
 
 	/**
@@ -1073,7 +1078,8 @@ public class SyncUtils {
 	 * 		the member ID of the member that self is syncing with
 	 * @return the Callable to run
 	 */
-	private static Callable<Object> syncStep2bWriteTipFlags(SyncShadowGraphManager sgm, boolean caller, boolean canAcceptSync,
+	private static Callable<Object> syncStep2bWriteTipFlags(SyncShadowGraphManager sgm, boolean caller,
+			boolean canAcceptSync,
 			SyncOutputStream dos, long[] myCounts, String threadName,
 			NodeId selfId, NodeId otherId) {
 		return new Callable<Object>() {
@@ -1082,10 +1088,13 @@ public class SyncUtils {
 
 				if (caller) {
 					List<Boolean> tipFlags = sgm.getSendTipFlags();
-					log.debug(SYNC_SGM.getMarker(), "{} -> {} `syncStep2bWriteTipFlags`: {} tip flags to send", selfId, otherId, tipFlags.size());
+					log.debug(SYNC_SGM.getMarker(), "{} -> {} `syncStep2bWriteTipFlags`: {} tip flags to send", selfId,
+							otherId, tipFlags.size());
 					dos.writeBooleanList(tipFlags);
-					log.debug(SYNC_SGM.getMarker(), "{} -> {} `syncStep2bWriteTipFlags`: finished, sent {} tip flags", selfId, otherId, tipFlags.size());
+					log.debug(SYNC_SGM.getMarker(), "{} -> {} `syncStep2bWriteTipFlags`: finished, sent {} tip flags",
+							selfId, otherId, tipFlags.size());
 				}
+
 				dos.flush();
 				return null; // returned value is ignored by the caller
 			}
@@ -1138,7 +1147,6 @@ public class SyncUtils {
 	}
 
 
-
 	/**
 	 * Sync step 4-B: WRITE the events
 	 *
@@ -1187,10 +1195,8 @@ public class SyncUtils {
 	}
 
 
-
-
-
-	private static synchronized SyncShadowGraphManager getSyncShadowGraphManager(AbstractPlatform platform, NodeId selfId, NodeId otherId, boolean caller) throws SyncFailedException {
+	private static synchronized SyncShadowGraphManager getSyncShadowGraphManager(AbstractPlatform platform,
+			NodeId selfId, NodeId otherId, boolean caller) throws SyncFailedException {
 
 		Hashgraph hashgraph = platform.getHashgraph();
 		SyncShadowGraphManager sgm = new SyncShadowGraphManager(hashgraph);
@@ -1198,58 +1204,70 @@ public class SyncUtils {
 		sgm.resetForSync();
 
 		String connectionLogString = "";
-		if (caller)
+		if (caller) {
 			connectionLogString = String.format("%s -> %s", selfId, otherId);
-		else
+		} else {
 			connectionLogString = String.format("%s <- %s", selfId, otherId);
+		}
 
 		{
 			EventImpl[] allEvents = hashgraph.getAllEvents();
 			int nullCurrentHashCount = 0, nExpired = 0;
 			for (EventImpl e : allEvents) {
-				if (e.getBaseHash() == null)
-					if (e.getGeneration() >= hashgraph.getMinGenerationNonAncient())
+				if (e.getBaseHash() == null) {
+					if (e.getGeneration() >= hashgraph.getMinGenerationNonAncient()) {
 						++nullCurrentHashCount;
-				if (e.getGeneration() < hashgraph.getMinGenerationNonAncient())
+					}
+				}
+
+				if (e.getGeneration() < hashgraph.getMinGenerationNonAncient()) {
 					++nExpired;
+				}
 			}
 
-			if (nullCurrentHashCount > 0)
+			if (nullCurrentHashCount > 0) {
 				log.debug(SYNC_SGM.getMarker(),
-					connectionLogString + " `getSyncShadowGraphManager`: {} Hashgraph current Events have null hashes",
-					nullCurrentHashCount);
+						connectionLogString + " `getSyncShadowGraphManager`: {} Hashgraph current Events have null " +
+								"hashes",
+						nullCurrentHashCount);
+			}
+
 			log.debug(SYNC_SGM.getMarker(),
-				connectionLogString + " `getSyncShadowGraphManager`: {} Hashgraph Events are expired",
-				nExpired);
+					connectionLogString + " `getSyncShadowGraphManager`: {} Hashgraph Events are expired",
+					nExpired);
 		}
 
 //		sgm.updateByGeneration(hashgraph, selfId, otherId, caller);
 
 		{
-			int result = sgm.verify(platform.getHashgraph());
+			int result = sgm.verify(platform.getHashgraph()).getValue();
 			switch (result) {
 				case 0:
 					log.debug(SYNC_SGM.getMarker(),
-							connectionLogString + " `getSyncShadowGraphManager`: (`result` is {}) Shadow graph is verified",
+							connectionLogString + " `getSyncShadowGraphManager`: (`result` is {}) Shadow graph is " +
+									"verified",
 							result);
 					break;
 				case 1:
 				case 3:
 				case 4:
 					log.debug(SYNC_SGM.getMarker(),
-							connectionLogString + " `getSyncShadowGraphManager`: (`result` is {}) Shadow graph is conditionally verified",
+							connectionLogString + " `getSyncShadowGraphManager`: (`result` is {}) Shadow graph is " +
+									"conditionally verified",
 							result);
 					break;
 				default:
 					log.debug(SYNC_SGM.getMarker(),
-							connectionLogString + " `getSyncShadowGraphManager`: (`result` is {}) Shadow graph construction failed",
+							connectionLogString + " `getSyncShadowGraphManager`: (`result` is {}) Shadow graph " +
+									"construction failed",
 							result);
 			}
 		}
 
 		if (sgm.shadowGraph.shadowEvents.size() > 0 && sgm.tips.size() == 0)
 			throw new SyncFailedException(
-					connectionLogString + ": shadow graph has " + sgm.shadowGraph.shadowEvents.size() + " events but zero tips!");
+					connectionLogString + ": shadow graph has " + sgm.shadowGraph.shadowEvents.size() + " events but " +
+							"zero tips!");
 
 		return sgm;
 	}

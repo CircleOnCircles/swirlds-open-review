@@ -27,4 +27,8 @@ public class Constants {
 	 * multiply this value for converting second to ms
 	 */
 	public static final int SEC_TO_MS = 1_000;
+	/**
+	 * divide by this value for converting nanoseconds to microseconds
+	 */
+	public static final int NANO_TO_MICRO = 1_000;
 }

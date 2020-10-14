@@ -337,7 +337,7 @@ class SyncCaller implements Runnable {
 			System.exit(0);
 		}
 
-		log.debug(RECONNECT.getMarker(),
+		log.info(RECONNECT.getMarker(),
 				"{} has fallen behind, will stop and clear EventFlow and Hashgraph",
 				platform.getSelfId());
 
@@ -353,7 +353,7 @@ class SyncCaller implements Runnable {
 
 		SyncConnection conn;
 		List<Long> reconnectNeighbors = platform.getSyncManager().getNeighborsForReconnect();
-		log.debug(RECONNECT.getMarker(),
+		log.info(RECONNECT.getMarker(),
 				"{} has fallen behind, will try to reconnect with {}",
 				platform::getSelfId, reconnectNeighbors::toString);
 
@@ -378,7 +378,7 @@ class SyncCaller implements Runnable {
 			}
 			SignedState signedState = null;
 			try {
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
 						"Starting reconnect in role of the receiver.",
 						true,
 						platform.getSelfId().getIdAsInt(),
@@ -391,14 +391,14 @@ class SyncCaller implements Runnable {
 				signedState = reconnect.getSignedState();
 				final long lastRoundReceived = signedState.getLastRoundReceived();
 
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
 						"Finished reconnect in the role of the receiver.",
 						true,
 						platform.getSelfId().getIdAsInt(),
 						neighborId.intValue(),
 						lastRoundReceived).toString());
 
-				log.debug(RECONNECT.getMarker(),
+				log.info(RECONNECT.getMarker(),
 						"signed state events:\n{}", EventUtils.toShortStrings(signedState.getEvents()));
 			} catch (Exception e) {
 				if (Utilities.isOrCausedBySocketException(e)) {

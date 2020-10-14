@@ -133,16 +133,12 @@ public interface Consensus {
 	Queue<EventImpl> getStaleEventQueue();
 
 	/**
-	 * Returns a list of 3 lists of hashes of witnesses associated with round "round".
+	 * Return the hashes of the judges in the given round. Returns null if the round is unknown, or if the complete
+	 * set of judges for that round is not yet decided. The caller must not modify any hash in the list, but it is ok
+	 * to modify the list itself.
 	 *
-	 * The list contains 3 lists. The first is the hashes of the famous witnesses in round "round".
-	 * The second is the hashes of witnesses in round "round"-1 which are ancestors of those in the first
-	 * list. The third is the hashes of witnesses in round "round"-2 which are ancestors of those in
-	 * the first list.
-	 *
-	 * @param round
-	 * 		the 3 lists are rounds round, round-1, round-2
-	 * @return the list of 3 lists of hashes of witnesses (famous for round "round", and ancestors of those)
+	 * @param round the round number to get (each judge has this as its roundCreated)
+	 * @return the Hash of each judge in that round
 	 */
-	List<List<Hash>> getWitnessHashes(final long round);
+	public List<Hash> getJudgeHashes(long round);
 }

@@ -325,9 +325,13 @@ public class BinaryObject extends AbstractMerkleLeaf implements MerkleExternalLe
 	 */
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
 
-		if (!(o instanceof BinaryObject)) return false;
+		if (!(o instanceof BinaryObject)) {
+			return false;
+		}
 
 		final BinaryObject object = (BinaryObject) o;
 

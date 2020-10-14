@@ -291,12 +291,13 @@ public class SwirldsPlatform extends AbstractPlatform {
 		// set here, then given to the state in run(). A copy of it is given to hashgraph.
 		this.initialAddressBook = initialAddressBook;
 		// hashgraph and state get separate copies of the address book
+
+		this.sgm = new SyncShadowGraphManager();
+
 		this.hashgraph = new Hashgraph(this, initialAddressBook.copy(), selfId, true,
 				Executors.newFixedThreadPool(
 						Math.max(1, Runtime.getRuntime().availableProcessors() * Settings.eventIntakeThreadMultiplier),
 						new PlatformThreadFactory("event_intake_")));
-
-		this.sgm = new SyncShadowGraphManager(this.hashgraph);
 
 		this.fontSize = fontSize;
 		this.numLines = numLines;
