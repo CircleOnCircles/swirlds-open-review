@@ -41,12 +41,14 @@ public class SyncShadowForestDFSIterator implements Iterator<SyncShadowEvent> {
 		this.visited = new HashSet<>();
 		this.syncShadowGraph = syncShadowGraph;
 		cur = start;
-		if(cur == null)
-			for (SyncShadowEvent s : syncShadowGraph.shadowEvents)
+		if (cur == null) {
+			for (SyncShadowEvent s : syncShadowGraph.shadowEvents) {
 				if (s.selfParent == null) {
 					cur = s;
 					break;
 				}
+			}
+		}
 	}
 
 	@Override
@@ -63,34 +65,37 @@ public class SyncShadowForestDFSIterator implements Iterator<SyncShadowEvent> {
 		}
 
 		// Find an unvisited self-child
-		for (SyncShadowEvent sc : cur.selfChildren)
+		for (SyncShadowEvent sc : cur.selfChildren) {
 			if (!visited.contains(sc)) {
 				cur = sc;
 				visited.add(cur);
 				return cur;
 			}
+		}
 
 		// If there is no unvisited self-child, backtrack to self-parent.
 		// Repeat until an unvisited sibling is found, or else there
 		// is no self-parent.
 		while (cur.selfParent != null) {
 			cur = cur.selfParent;
-			for (SyncShadowEvent sc : cur.selfChildren)
+			for (SyncShadowEvent sc : cur.selfChildren) {
 				if (!visited.contains(sc)) {
 					cur = sc;
 					visited.add(cur);
 					return cur;
 				}
+			}
 		}
 
 		// If the entire self-tree rooted at cur@entry has been visited,
 		// scan for the next primitive Event (an Event that has no self-parent).
-		for (SyncShadowEvent s : syncShadowGraph.shadowEvents)
+		for (SyncShadowEvent s : syncShadowGraph.shadowEvents) {
 			if (s.selfParent == null && !visited.contains(s)) {
 				cur = s;
 				visited.add(s);
 				return cur;
 			}
+		}
 
 		// There are no remaining trees to visit in the forest.
 		// We are here iff `hasNext()` evaluates to `true`: should never get here.

@@ -76,7 +76,7 @@ public class SyncConnection {
 				if (conn != null) {
 					long bytesSent = conn.getBytesWrittenSinceLast();
 					result += bytesSent;
-					((com.swirlds.platform.Statistics)platform.getStats()).avgBytePerSecSent[i].update(bytesSent);
+					((com.swirlds.platform.Statistics) platform.getStats()).avgBytePerSecSent[i].update(bytesSent);
 				}
 			}
 		}
@@ -201,9 +201,8 @@ public class SyncConnection {
 	 * @return the new connection, or null if it couldn't connect on the first try
 	 */
 	static SyncConnection connect(
-		AbstractPlatform platform,
-		NodeId selfId, NodeId otherId)
-	{
+			AbstractPlatform platform,
+			NodeId selfId, NodeId otherId) {
 		log.debug(SYNC_START.getMarker(), "{} about to connect to {}",
 				platform.getSelfId(), otherId);
 

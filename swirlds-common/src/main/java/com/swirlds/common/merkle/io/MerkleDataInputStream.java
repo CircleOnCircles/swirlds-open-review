@@ -18,18 +18,18 @@ import com.swirlds.common.constructable.ConstructableRegistry;
 import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.io.SerializableAbbreviated;
 import com.swirlds.common.io.SerializableDataInputStream;
-import com.swirlds.common.merkle.exceptions.IllegalChildCountException;
 import com.swirlds.common.merkle.MerkleInternal;
 import com.swirlds.common.merkle.MerkleLeaf;
 import com.swirlds.common.merkle.MerkleNode;
+import com.swirlds.common.merkle.exceptions.IllegalChildCountException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import static com.swirlds.common.io.SerializableStreamConstants.MerkleSerializationProtocolVersion.CURRENT;
 import static com.swirlds.common.io.SerializableStreamConstants.MerkleSerializationProtocolVersion.ADDED_OPTIONS;
+import static com.swirlds.common.io.SerializableStreamConstants.MerkleSerializationProtocolVersion.CURRENT;
 import static com.swirlds.common.io.SerializableStreamConstants.MerkleSerializationProtocolVersion.ORIGINAL;
 import static com.swirlds.common.io.SerializableStreamConstants.NULL_CLASS_ID;
 

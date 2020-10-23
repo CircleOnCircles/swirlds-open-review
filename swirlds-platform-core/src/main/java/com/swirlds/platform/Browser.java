@@ -125,7 +125,7 @@ public abstract class Browser {
 	/* the number of pixels between the edges of a window and interior region that can be used */
 	static Insets insets;
 	/** the thread for each Platform.run */
-	private static Thread platformRunThreads[];
+	private static Thread[] platformRunThreads;
 	/** metadata about all known apps, swirlds, members, signed states */
 	static StateHierarchy stateHierarchy = null;
 

@@ -26,12 +26,12 @@ import com.swirlds.common.NodeId;
 import com.swirlds.common.SwirldState;
 import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.events.Event;
-import com.swirlds.logging.LogMarker;
 import com.swirlds.common.merkle.io.MerkleDataInputStream;
 import com.swirlds.common.merkle.io.MerkleDataOutputStream;
 import com.swirlds.common.notification.NotificationFactory;
 import com.swirlds.common.notification.listeners.StateWriteToDiskCompleteListener;
 import com.swirlds.common.notification.listeners.StateWriteToDiskCompleteNotification;
+import com.swirlds.logging.LogMarker;
 import com.swirlds.platform.state.SavedStateInfo;
 import com.swirlds.platform.state.SigSet;
 import com.swirlds.platform.state.SignedState;
@@ -285,7 +285,7 @@ public class SignedStateFileManager implements Runnable {
 		Pair<Hash, SignedState> returnState;
 		try (FileInputStream fileIn = new FileInputStream(info.getStateFile());
 			 BufferedInputStream bufIn = new BufferedInputStream(fileIn);
-			 MerkleDataInputStream in = new MerkleDataInputStream(bufIn, true);) {
+			 MerkleDataInputStream in = new MerkleDataInputStream(bufIn, true)) {
 			// we need to read in the first byte to determine which kind of signed state file we are reading
 			in.mark(1);
 			byte firstByte = in.readByte();
@@ -330,7 +330,7 @@ public class SignedStateFileManager implements Runnable {
 
 		try (FileInputStream fileIn = new FileInputStream(info.getEvents());
 			 BufferedInputStream bufIn = new BufferedInputStream(fileIn);
-			 MerkleDataInputStream in = new MerkleDataInputStream(bufIn, true);) {
+			 MerkleDataInputStream in = new MerkleDataInputStream(bufIn, true)) {
 			in.readInt();// file version
 			in.readProtocolVersion();
 			returnState.getValue().setLocalStateEvents(in.readSerializable());
@@ -349,11 +349,15 @@ public class SignedStateFileManager implements Runnable {
 					"Could not delete because it doesn't exist: '{}'", f.getAbsolutePath());
 			return;
 		}
+
 		if (f.isDirectory()) {
-			for (File c : f.listFiles())
+			for (File c : f.listFiles()) {
 				deleteRecursively(c);
+			}
 		}
+
 		boolean deleted = f.delete();
+
 		if (!deleted) {
 			log.error(EXCEPTION.getMarker(), "Could not delete: '{}'", f.getAbsolutePath());
 		} else {

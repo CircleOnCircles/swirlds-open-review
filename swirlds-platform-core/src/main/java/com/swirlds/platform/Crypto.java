@@ -11,7 +11,7 @@
  * INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
  * OR NON-INFRINGEMENT.
  */
-	package com.swirlds.platform;
+package com.swirlds.platform;
 
 import com.swirlds.common.CommonUtils;
 import com.swirlds.common.crypto.internal.CryptographySettings;
@@ -23,7 +23,6 @@ import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 

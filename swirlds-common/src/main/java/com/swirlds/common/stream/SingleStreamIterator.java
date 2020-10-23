@@ -89,7 +89,7 @@ public class SingleStreamIterator<T extends SelfSerializable> implements Iterato
 
 	@Override
 	public T next() {
-		if(!hasNext()){
+		if (!hasNext()) {
 			throw new NoSuchElementException();
 		}
 		try {

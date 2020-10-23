@@ -95,9 +95,9 @@ class WinTab2Hashgraph extends WinBrowser.PrePaintableJPanel {
 	// number of columns (more than number of members if preventCrossings)
 	private int numColumns;
 	// mems2col[a][b] = which member-b column is adjacent to some member-a column
-	private int mems2col[][];
+	private int[][] mems2col;
 	// col2mems[c][0] = the member for column c, col2mems[c][1] = second member or -1 if none
-	private int col2mems[][];
+	private int[][] col2mems;
 
 	// if checked, freeze the display (don't update it)
 	private Checkbox freezeCheckbox;
@@ -355,11 +355,16 @@ class WinTab2Hashgraph extends WinBrowser.PrePaintableJPanel {
 	 */
 	private class Picture extends JPanel {
 		private static final long serialVersionUID = 1L;
-		int ymin, ymax, width, n;
+		int ymin;
+		int ymax;
+		int width;
+		int n;
 		double r;
-		long minGen, maxGen;
+		long minGen;
+		long maxGen;
 		// where to draw next in the window, and the font height
-		int row, textLineHeight;
+		int row;
+		int textLineHeight;
 
 		/** find x position on the screen for event e2 which has an other-parent of e1 (or null if none) */
 		private int xpos(Event e1, Event e2) {
@@ -640,10 +645,14 @@ class WinTab2Hashgraph extends WinBrowser.PrePaintableJPanel {
 		final int i = (x / m) % (m / 2); // the ith Eulerian path on the complete graph of m-1 vertices
 		final int j = x % m;       // position along that ith path
 
-		if (j == m - 1)
+		if (j == m - 1) {
 			return m - 1; // add the mth vertex after each Eulerian path to get a Eulerian cycle
-		if ((j % 2) == 0)
+		}
+
+		if ((j % 2) == 0) {
 			return i + j / 2; // in a given path, every other vertex counts up
+		}
+
 		return (m - 2 + i - (j - 1) / 2) % (m - 1); // and every other vertex counts down
 	}
 }

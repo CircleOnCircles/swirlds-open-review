@@ -65,7 +65,9 @@ public class MerkleRouteStepIterator implements Iterator<Integer> {
 
 	/**
 	 * Reset the iterator with a new route. Useful for recycling this object.
-	 * @param route The new route to iterate.
+	 *
+	 * @param route
+	 * 		The new route to iterate.
 	 */
 	public void reset(int[] route) {
 		this.route = route;

@@ -38,6 +38,10 @@ class FCQueueNode<E extends FastCopyable<E>> {
 	/** the next node in the direction toward the tail, or null if none */
 	FCQueueNode<E> towardTail;
 
+	/** the hash of the element's hash value */
+	byte[] elementHashOfHash;
+
+
 	/**
 	 * instantiate a single-node list with a ref count of 2 (because head and tail will point to it)
 	 *

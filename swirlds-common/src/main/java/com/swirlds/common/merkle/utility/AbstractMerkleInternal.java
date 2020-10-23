@@ -135,7 +135,7 @@ public abstract class AbstractMerkleInternal extends AbstractMerkleNode implemen
 		if (!isReleased()) {
 			onRelease();
 			markAsReleased();
-			for (MerkleNode child: children) {
+			for (MerkleNode child : children) {
 				if (child != null) {
 					child.decrementReferenceCount();
 				}

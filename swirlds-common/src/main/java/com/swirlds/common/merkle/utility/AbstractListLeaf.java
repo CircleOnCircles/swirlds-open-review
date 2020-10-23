@@ -95,7 +95,6 @@ public abstract class AbstractListLeaf<T extends FastCopyable<T> & SelfSerializa
 	 * {@inheritDoc}
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
 		elements = in.readSerializableList(getMaxSize());
 	}

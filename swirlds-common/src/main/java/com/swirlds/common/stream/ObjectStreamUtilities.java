@@ -104,7 +104,8 @@ public class ObjectStreamUtilities {
 	/**
 	 * Parses a single stream file, return initialRunningHash saved in the .soc file
 	 *
-	 * @param file a .soc stream file
+	 * @param file
+	 * 		a .soc stream file
 	 * @return initial RunningHash
 	 */
 	public static Hash readInitialHashFromStreamFile(final File file) {
@@ -170,7 +171,8 @@ public class ObjectStreamUtilities {
 	/**
 	 * read signature byte from a stream signature file
 	 *
-	 * @param file a signature file
+	 * @param file
+	 * 		a signature file
 	 * @return a Signature saved in this file
 	 */
 	public static Signature readSigFromFile(File file) {
@@ -194,7 +196,8 @@ public class ObjectStreamUtilities {
 	/**
 	 * check if given file is a stream file
 	 *
-	 * @param file a file
+	 * @param file
+	 * 		a file
 	 * @return whether the given file is a stream file
 	 */
 	public static boolean isStreamFile(File file) {
@@ -204,7 +207,8 @@ public class ObjectStreamUtilities {
 	/**
 	 * check if it is a stream file name
 	 *
-	 * @param fileName a file name
+	 * @param fileName
+	 * 		a file name
 	 * @return whether the given file name is a stream file name
 	 */
 	public static boolean isStreamFile(String fileName) {
@@ -214,7 +218,8 @@ public class ObjectStreamUtilities {
 	/**
 	 * check if given file is a stream signature file
 	 *
-	 * @param file a file
+	 * @param file
+	 * 		a file
 	 * @return whether the given file is a stream signature file
 	 */
 	public static boolean isStreamSigFile(File file) {
@@ -237,8 +242,11 @@ public class ObjectStreamUtilities {
 
 	/**
 	 * validate a list of stream object files
-	 * @param fileList a list of stream object files
-	 * @param <T> extends SelfSerializable
+	 *
+	 * @param fileList
+	 * 		a list of stream object files
+	 * @param <T>
+	 * 		extends SelfSerializable
 	 * @return a Pair of StreamValidationResult and last RunningHash
 	 */
 	public static <T extends SelfSerializable> Pair<StreamValidationResult, Hash> validateFileList(List<File> fileList) {
@@ -249,8 +257,10 @@ public class ObjectStreamUtilities {
 	 * Calculates a RunningHash for given initialRunningHash and objects in the iterator
 	 * Verifies if the lastRunningHash in the Iterator matches the calculated RunningHash
 	 *
-	 * @param iterator an iterator parsed from stream file
-	 * @param <T> extends SelfSerializable
+	 * @param iterator
+	 * 		an iterator parsed from stream file
+	 * @param <T>
+	 * 		extends SelfSerializable
 	 * @return a pair of validation result and last running hash
 	 */
 	private static <T extends SelfSerializable> Pair<StreamValidationResult, Hash> validateIterator(

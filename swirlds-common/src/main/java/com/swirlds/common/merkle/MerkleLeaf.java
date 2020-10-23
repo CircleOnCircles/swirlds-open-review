@@ -15,7 +15,6 @@
 package com.swirlds.common.merkle;
 
 import com.swirlds.common.crypto.SerializableHashable;
-import com.swirlds.common.io.SelfSerializable;
 
 /**
  * A Merkle Leaf has the following properties:

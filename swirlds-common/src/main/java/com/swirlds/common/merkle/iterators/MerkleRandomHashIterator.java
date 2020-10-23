@@ -54,7 +54,7 @@ public class MerkleRandomHashIterator extends MerkleHashIterator {
 		}
 
 		Collections.shuffle(iterationOrder, random);
-		for (int childIndex: iterationOrder) {
+		for (int childIndex : iterationOrder) {
 			pushNode(node.getChild(childIndex));
 		}
 	}

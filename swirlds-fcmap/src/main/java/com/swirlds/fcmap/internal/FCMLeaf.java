@@ -103,7 +103,6 @@ public class FCMLeaf<K extends FCMKey, V extends FCMValue>
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected V getMutableValue() {

@@ -14,10 +14,10 @@
 
 package com.swirlds.fcmap.internal;
 
-import com.swirlds.common.merkle.MerkleNode;
-import com.swirlds.common.merkle.iterators.MerkleDepthFirstIterator;
 import com.swirlds.common.FCMKey;
 import com.swirlds.common.FCMValue;
+import com.swirlds.common.merkle.MerkleNode;
+import com.swirlds.common.merkle.iterators.MerkleDepthFirstIterator;
 
 public class MerkleFCMLeafIterator<K extends FCMKey, V extends FCMValue>
 		extends MerkleDepthFirstIterator<FCMNode<K, V>, FCMLeaf<K, V>> {
@@ -33,6 +33,6 @@ public class MerkleFCMLeafIterator<K extends FCMKey, V extends FCMValue>
 
 	@Override
 	public boolean shouldNodeBeReturned(final FCMNode<K, V> node) {
-		return node!= null && node.isFCMLeaf();
+		return node != null && node.isFCMLeaf();
 	}
 }

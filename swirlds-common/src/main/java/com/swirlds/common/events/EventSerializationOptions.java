@@ -16,5 +16,5 @@ package com.swirlds.common.events;
 
 public enum EventSerializationOptions {
 	FULL,
-	OMIT_TRANSACTIONS;
+	OMIT_TRANSACTIONS
 }

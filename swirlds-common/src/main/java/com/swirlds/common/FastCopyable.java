@@ -47,7 +47,7 @@ public interface FastCopyable<T extends FastCopyable<T>> extends Releasable {
 	 *
 	 * @return the new copy that was made
 	 */
-	 T copy();
+	T copy();
 
 	/**
 	 * Make this object be an exact copy of the object that was serialized to the given stream. It should

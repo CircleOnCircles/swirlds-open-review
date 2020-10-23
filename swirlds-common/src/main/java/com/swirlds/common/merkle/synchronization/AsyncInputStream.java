@@ -165,7 +165,6 @@ public class AsyncInputStream {
 	 * Get an anticipated message. Blocks until the message is ready. Object returned will be
 	 * the same object passed into addAnticipatedMessage, but deserialized from the stream.
 	 */
-	@SuppressWarnings("unchecked")
 	public <T> T readAnticipatedMessage() throws InterruptedException {
 		if (ReconnectSettingsFactory.get().isAsyncStreams()) {
 			return asyncRead();

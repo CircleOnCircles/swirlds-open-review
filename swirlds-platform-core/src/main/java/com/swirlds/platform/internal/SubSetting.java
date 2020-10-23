@@ -17,6 +17,6 @@ package com.swirlds.platform.internal;
 /**
  * A class that all complex settings in the Settings class should extend
  */
-public abstract class SubSetting{
+public abstract class SubSetting {
 
 }

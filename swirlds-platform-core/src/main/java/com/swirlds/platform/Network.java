@@ -160,12 +160,14 @@ public class Network {
 	 * @return an array of all local addresses, sorted by IP version (4 or 6), then alphabetically.
 	 */
 	static String[] getOwnAddresses2() {
-		if (ownAddresses == null)
+		if (ownAddresses == null) {
 			try {
 				ownAddresses = computeOwnAddresses();
 			} catch (SocketException e) {
 				log.error(EXCEPTION.getMarker(), "", e);
 			}
+		}
+
 		return addresses;
 	}
 

@@ -78,6 +78,19 @@ public interface Consensus {
 	 */
 	long getMinGenerationNonAncient();
 
+	/**
+	 * Return the minimum generation of all the famous witnesses that are not in expired rounds.
+	 *
+	 * @return the minimum (oldest, least recent) generation which is not yet expired
+	 */
+	long getMinGenerationNonExpired();
+
+	/**
+	 * Return the minimum round number from rounds that have not yet expired.
+	 *
+	 * @return the minimum (oldest, least recent) round which is not yet expired
+	 */
+	long getMinRoundNonExpired();
 
 	/**
 	 * @return the number of events in the hashgraph
@@ -133,16 +146,13 @@ public interface Consensus {
 	Queue<EventImpl> getStaleEventQueue();
 
 	/**
-	 * Returns a list of 3 lists of hashes of witnesses associated with round "round".
-	 *
-	 * The list contains 3 lists. The first is the hashes of the famous witnesses in round "round".
-	 * The second is the hashes of witnesses in round "round"-1 which are ancestors of those in the first
-	 * list. The third is the hashes of witnesses in round "round"-2 which are ancestors of those in
-	 * the first list.
+	 * Return the hashes of the judges in the given round. Returns null if the round is unknown, or if the complete
+	 * set of judges for that round is not yet decided. The caller must not modify any hash in the list, but it is ok
+	 * to modify the list itself.
 	 *
 	 * @param round
-	 * 		the 3 lists are rounds round, round-1, round-2
-	 * @return the list of 3 lists of hashes of witnesses (famous for round "round", and ancestors of those)
+	 * 		the round number to get (each judge has this as its roundCreated)
+	 * @return the Hash of each judge in that round
 	 */
-	List<List<Hash>> getWitnessHashes(final long round);
+	public List<Hash> getJudgeHashes(long round);
 }

@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static com.swirlds.logging.LogMarker.SYNC;
+import static com.swirlds.logging.LogMarker.SYNC_SGM;
 
 /**
  * A class that manages information about who we need to sync with, and whether we need to reconnect
@@ -147,7 +148,7 @@ class SyncManager {
 		// we shouldn't sync if the event intake queue is too big
 		final int intakeQueueSize = hashgraph.getEventIntakeQueueSize();
 		if (intakeQueueSize > Settings.eventIntakeQueueThrottleSize) {
-			LogManager.getLogger().debug(SYNC.getMarker(),
+			LogManager.getLogger().debug(SYNC_SGM.getMarker(),
 					"don't accept sync because event intake queue is too big, size: {}",
 					intakeQueueSize);
 			return false;
@@ -155,7 +156,7 @@ class SyncManager {
 
 		final int numListenerSyncsValue = numListenerSyncs.get();
 		if (numListenerSyncsValue > Settings.maxIncomingSyncsInc + Settings.maxOutgoingSyncs) {
-			LogManager.getLogger().debug(SYNC.getMarker(),
+			LogManager.getLogger().debug(SYNC_SGM.getMarker(),
 					"don't accept sync because numListenerSyncs can't exceed limit, size: {}",
 					numListenerSyncsValue);
 			return false;

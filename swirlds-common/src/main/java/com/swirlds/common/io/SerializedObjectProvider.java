@@ -36,5 +36,5 @@ public interface SerializedObjectProvider<T extends FastCopyable<T>> {
 	 * @throws IOException
 	 * 		Exception related to the input stream.
 	 */
-	 T deserialize(DataInputStream inputStream) throws IOException;
+	T deserialize(DataInputStream inputStream) throws IOException;
 }

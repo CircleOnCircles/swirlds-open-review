@@ -25,7 +25,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * an Iterator from which we can get all SelfSerializable objects contained in given files;

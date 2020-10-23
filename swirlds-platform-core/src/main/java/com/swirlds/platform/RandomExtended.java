@@ -13,10 +13,10 @@
  */
 package com.swirlds.platform;
 
+import com.swirlds.common.FastCopyable;
 import com.swirlds.common.io.SelfSerializable;
 import com.swirlds.common.io.SerializableDataInputStream;
 import com.swirlds.common.io.SerializableDataOutputStream;
-import com.swirlds.common.FastCopyable;
 
 import java.io.IOException;
 import java.util.Random;

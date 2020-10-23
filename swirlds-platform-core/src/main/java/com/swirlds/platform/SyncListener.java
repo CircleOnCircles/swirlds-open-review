@@ -16,6 +16,7 @@ package com.swirlds.platform;
 import com.swirlds.common.AddressBook;
 import com.swirlds.common.AutoCloseableWrapper;
 import com.swirlds.common.NodeId;
+import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.io.BadIOException;
 import com.swirlds.logging.payloads.ReconnectFinishPayload;
 import com.swirlds.logging.payloads.ReconnectStartPayload;
@@ -31,6 +32,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 import static com.swirlds.logging.LogMarker.EXCEPTION;
 import static com.swirlds.logging.LogMarker.HEARTBEAT;
@@ -54,6 +59,8 @@ class SyncListener implements Runnable {
 	private final NodeId selfId;
 	/** ID number for other member (the one self is listening for) */
 	private final NodeId otherId;
+
+	private SyncData syncData = new SyncData();
 
 	/**
 	 * the platform instantiates the SyncListener, and gives it a reference to itself, plus other info that
@@ -255,19 +262,50 @@ class SyncListener implements Runnable {
 			try {
 				if (platform.getSyncManager().hasFallenBehind()) {
 					// if we have fallen behind, dont accept any syncs
-					SyncUtils.sync(conn, false, false);
+					log.debug(SYNC_SGM.getMarker(),
+							"node {} has fallen behind. Incoming sync requests will not be accepted", selfId);
+
+					syncData.resetForSync();
+					SyncUtils.sync(conn, syncData, false, false);
+
+					log.debug(SYNC_SGM.getMarker(),
+							"Sizes after `sync`, workingTips: {}, receivedTipHashes: {}, sendList: {}",
+							syncData.workingTips.size(),
+							syncData.receivedTipHashes.size(),
+							syncData.sendList.size());
+
 				} else if (!lockCallListen
 						.tryLock("SyncListener.handleOneMsgOrException 1")) {
 					// caller is already syncing with otherId, so reply NACK
-					SyncUtils.sync(conn, false, false);
+//					log.debug(SYNC_SGM.getMarker(),
+//							"node {} is already syncing with {}. Incoming sync requests from {} will not be accepted", selfId, otherId, otherId);
+
+					syncData.resetForSync();
+					SyncUtils.sync(conn, syncData, false, false);
+					log.debug(SYNC_SGM.getMarker(),
+							"Sizes after `sync`, workingTips: {}, receivedTipHashes: {}, sendList: {}",
+							syncData.workingTips.size(),
+							syncData.receivedTipHashes.size(),
+							syncData.sendList.size());
+
 				} else {
 					log.debug(HEARTBEAT.getMarker(),
 							"SyncListener locked platform[{}].syncServer.lockCallListen[{}]",
 							platform.getSelfId(), otherId);
 					try {
 						boolean acceptIncoming = (platform.getSyncManager().shouldAcceptSync());
-						log.debug(SYNC_SGM.getMarker(), " `SyncListener.handleOneMsgOrException`: entering `SyncUtils.sync`");
-						SyncUtils.sync(conn, false, acceptIncoming);
+						if(!acceptIncoming)
+							log.debug(SYNC_SGM.getMarker(),
+									"platform.getSyncManager().shouldAcceptSync() returned false. Incoming sync requests will not be accepted.");
+
+						syncData.resetForSync();
+						SyncUtils.sync(conn, syncData, false, acceptIncoming);
+						log.debug(SYNC_SGM.getMarker(),
+								"Sizes after `sync`, workingTips: {}, receivedTipHashes: {}, sendList: {}",
+								syncData.workingTips.size(),
+								syncData.receivedTipHashes.size(),
+								syncData.sendList.size());
+
 					} finally {
 						lockCallListen.unlock(
 								"SyncListener.handleOneMsgOrException 2");
@@ -282,7 +320,7 @@ class SyncListener implements Runnable {
 			}
 			return true;
 		} else if (b == SyncConstants.commStateRequest) {
-			log.debug(RECONNECT.getMarker(), "{} got commStateRequest from {}", platform.getSelfId(), otherId);
+			log.info(RECONNECT.getMarker(), "{} got commStateRequest from {}", platform.getSelfId(), otherId);
 
 			try (AutoCloseableWrapper<SignedState> stateWrapper =
 						 platform.getSignedStateManager().getLastCompleteSignedState()) {
@@ -292,7 +330,7 @@ class SyncListener implements Runnable {
 				platform.getSignedStateManager().jsonifySignedState(stateWrapper.get(), StateDumpSource.RECONNECT);
 
 				final int oid = otherId.getIdAsInt();
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
 						"Starting reconnect in the role of the sender",
 						false,
 						platform.getSelfId().getIdAsInt(),
@@ -302,7 +340,7 @@ class SyncListener implements Runnable {
 				ReconnectSender sender = new ReconnectSender(conn, stateWrapper.get());
 				sender.execute();
 
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
 						"Finished reconnect in the role of the sender.",
 						false,
 						platform.getSelfId().getIdAsInt(),

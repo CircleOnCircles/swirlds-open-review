@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Stack;
 
-public class SyncShadowGraphDescendantDFSIterator implements Iterator<SyncShadowEvent>  {
+public class SyncShadowGraphDescendantDFSIterator implements Iterator<SyncShadowEvent> {
 	private final SyncShadowGraph shadowGraph;
 	private SyncShadowEvent cur;
 	final Stack<SyncShadowEvent> st = new Stack<>();
@@ -36,11 +36,12 @@ public class SyncShadowGraphDescendantDFSIterator implements Iterator<SyncShadow
 	}
 
 	public SyncShadowEvent next() {
-		while(!st.empty()) {
+		while (!st.empty()) {
 			cur = st.pop();
 
-			if(visited.contains(cur))
+			if (visited.contains(cur)) {
 				continue;
+			}
 
 			visited.add(cur);
 			pushNext();
@@ -51,8 +52,17 @@ public class SyncShadowGraphDescendantDFSIterator implements Iterator<SyncShadow
 	}
 
 	private void pushNext() {
-		cur.otherChildren.forEach((SyncShadowEvent s) -> { if(!visited.contains(s)) st.push(s); });
-		cur.selfChildren.forEach((SyncShadowEvent s) -> { if(!visited.contains(s)) st.push(s); });
+		cur.otherChildren.forEach((SyncShadowEvent s) -> {
+			if (!visited.contains(s)) {
+				st.push(s);
+			}
+		});
+
+		cur.selfChildren.forEach((SyncShadowEvent s) -> {
+			if (!visited.contains(s)) {
+				st.push(s);
+			}
+		});
 	}
 
 }

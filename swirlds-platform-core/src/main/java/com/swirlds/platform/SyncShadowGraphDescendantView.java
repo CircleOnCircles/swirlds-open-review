@@ -18,8 +18,7 @@ public class SyncShadowGraphDescendantView implements Iterable<SyncShadowEvent> 
 	SyncShadowGraph shadowGraph;
 	SyncShadowEvent start;
 
-	SyncShadowGraphDescendantView(SyncShadowGraph shadowGraph, SyncShadowEvent start)
-	{
+	SyncShadowGraphDescendantView(SyncShadowGraph shadowGraph, SyncShadowEvent start) {
 		this.shadowGraph = shadowGraph;
 		this.start = start;
 	}

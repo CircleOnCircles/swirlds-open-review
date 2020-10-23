@@ -38,7 +38,8 @@ public class DatabaseSettings extends SubSetting {
 	public DatabaseSettings() {
 	}
 
-	public DatabaseSettings(final boolean active, final String host, final int port, final String schema, final String userName,
+	public DatabaseSettings(final boolean active, final String host, final int port, final String schema,
+			final String userName,
 			final String password, final String driverClassName, final String jdbcUrlPrefix) {
 		this.active = active;
 		this.host = host;

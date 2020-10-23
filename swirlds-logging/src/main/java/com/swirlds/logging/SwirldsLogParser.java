@@ -21,7 +21,9 @@ public interface SwirldsLogParser<T> {
 
 	/**
 	 * Parse a line from the log.
-	 * @param line the line to parse
+	 *
+	 * @param line
+	 * 		the line to parse
 	 * @return a log entry if one was found. If the line is invalid then return null.
 	 */
 	T parse(String line);

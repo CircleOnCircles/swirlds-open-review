@@ -35,7 +35,7 @@ public class Message implements Comparable<Message> {
 	private int length;
 
 	/** the final hash */
-	private byte[] hash;
+	private Hash hash;
 
 	/** the digest algorithm requested */
 	private DigestType digestType;
@@ -220,7 +220,7 @@ public class Message implements Comparable<Message> {
 	 *
 	 * @return the hash of the message payload
 	 */
-	public byte[] getHash() {
+	public Hash getHash() {
 		return hash;
 	}
 
@@ -230,7 +230,7 @@ public class Message implements Comparable<Message> {
 	 * @param hash
 	 * 		the computed hash
 	 */
-	public void setHash(final byte[] hash) {
+	public void setHash(final Hash hash) {
 		this.hash = hash;
 	}
 

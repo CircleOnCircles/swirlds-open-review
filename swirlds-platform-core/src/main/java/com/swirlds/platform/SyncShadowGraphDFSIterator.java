@@ -27,12 +27,13 @@ public class SyncShadowGraphDFSIterator implements Iterator<SyncShadowEvent> {
 	SyncShadowGraphDFSIterator(SyncShadowGraph shadowGraph) {
 		this.shadowGraph = shadowGraph;
 		cur = null;
-		for (SyncShadowEvent s : shadowGraph.shadowEvents)
+		for (SyncShadowEvent s : shadowGraph.shadowEvents) {
 			if (s.selfParent == null) {
 				cur = s;
 				st.push(cur);
 				break;
 			}
+		}
 
 	}
 
@@ -42,11 +43,12 @@ public class SyncShadowGraphDFSIterator implements Iterator<SyncShadowEvent> {
 	}
 
 	public SyncShadowEvent next() {
-		while(!st.empty()) {
+		while (!st.empty()) {
 			cur = st.pop();
 
-			if(visited.contains(cur))
+			if (visited.contains(cur)) {
 				continue;
+			}
 
 			visited.add(cur);
 			pushNext();
@@ -55,12 +57,13 @@ public class SyncShadowGraphDFSIterator implements Iterator<SyncShadowEvent> {
 
 		// A connected component has been exhausted. Search for an Event in an
 		// unvisited component.
-		for(SyncShadowEvent s : shadowGraph)
-			if(!visited.contains(s)) {
+		for (SyncShadowEvent s : shadowGraph) {
+			if (!visited.contains(s)) {
 				cur = s;
 				st.push(cur);
 				return cur;
 			}
+		}
 
 		// There are no unvisited components.
 		// We are here iff `hasNext()` evaluates to `true`: should never get here.
@@ -68,13 +71,25 @@ public class SyncShadowGraphDFSIterator implements Iterator<SyncShadowEvent> {
 	}
 
 	void pushNext() {
-		if(!visited.contains(cur.otherParent) && !st.contains(cur.otherParent) && cur.otherParent != null)
+		if (!visited.contains(cur.otherParent) && !st.contains(cur.otherParent) && cur.otherParent != null) {
 			st.push(cur.otherParent);
-		if(!visited.contains(cur.selfParent) && !st.contains(cur.selfParent) && cur.selfParent != null)
-			st.push(cur.selfParent);
+		}
 
-		cur.otherChildren.forEach((SyncShadowEvent s) -> { if(!visited.contains(s)) st.push(s); });
-		cur.selfChildren.forEach((SyncShadowEvent s) -> { if(!visited.contains(s)) st.push(s); });
+		if (!visited.contains(cur.selfParent) && !st.contains(cur.selfParent) && cur.selfParent != null) {
+			st.push(cur.selfParent);
+		}
+
+		cur.otherChildren.forEach((SyncShadowEvent s) -> {
+			if (!visited.contains(s)) {
+				st.push(s);
+			}
+		});
+
+		cur.selfChildren.forEach((SyncShadowEvent s) -> {
+			if (!visited.contains(s)) {
+				st.push(s);
+			}
+		});
 	}
 
 }

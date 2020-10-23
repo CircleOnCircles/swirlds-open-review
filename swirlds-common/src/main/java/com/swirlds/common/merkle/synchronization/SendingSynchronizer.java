@@ -20,8 +20,8 @@ import com.swirlds.common.merkle.io.MerkleDataInputStream;
 import com.swirlds.common.merkle.io.MerkleDataOutputStream;
 import com.swirlds.common.threading.StandardWorkGroup;
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
 
 import java.util.LinkedList;
 import java.util.List;
