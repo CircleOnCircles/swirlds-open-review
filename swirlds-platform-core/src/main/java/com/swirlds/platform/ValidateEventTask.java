@@ -14,8 +14,8 @@
 
 package com.swirlds.platform;
 
-import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.Transaction;
+import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.events.BaseEventHashedData;
 import com.swirlds.common.events.BaseEventUnhashedData;
 import com.swirlds.platform.event.EventIntakeTask;

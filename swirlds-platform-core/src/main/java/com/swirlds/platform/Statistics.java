@@ -14,7 +14,6 @@
 package com.swirlds.platform;
 
 import com.sun.management.OperatingSystemMXBean;
-import com.swirlds.common.AddressBook;
 import com.swirlds.common.NodeId;
 import com.swirlds.common.PlatformStatNames;
 import com.swirlds.common.StatEntry;

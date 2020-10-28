@@ -26,6 +26,7 @@ open module com.swirlds.fcmap {
 
 	requires org.apache.logging.log4j;
 	requires org.apache.logging.log4j.core;
+	requires org.apache.commons.lang3;
 
 	requires java.sql;
 }

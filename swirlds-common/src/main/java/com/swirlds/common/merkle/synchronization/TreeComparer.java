@@ -24,7 +24,12 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.*;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.CHILD_COUNT;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.CLASS_DIFFERENT;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.DIFF_TYPE;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.HASH_DIFF;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.ITERATOR_MISMATCH;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.NODE_NULL;
 
 public abstract class TreeComparer {
 

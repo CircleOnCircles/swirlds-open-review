@@ -22,7 +22,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * A class used to store base event data that does not affect the hash of that event.
@@ -78,9 +77,13 @@ public class BaseEventUnhashedData implements SelfSerializable {
 
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
 
-		if (o == null || getClass() != o.getClass()) return false;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		final BaseEventUnhashedData that = (BaseEventUnhashedData) o;
 

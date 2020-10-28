@@ -18,7 +18,6 @@ import com.swirlds.common.FCMKey;
 import com.swirlds.common.FCMValue;
 import com.swirlds.common.io.SerializableDataInputStream;
 import com.swirlds.common.io.SerializableDataOutputStream;
-import com.swirlds.common.merkle.MerkleLeaf;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.IOException;
@@ -47,6 +46,7 @@ public class MerkleLong extends AbstractMerkleLeaf implements FCMKey, FCMValue {
 
 	/**
 	 * get the long value in {@link MerkleLong}
+	 *
 	 * @return
 	 */
 	public long getValue() {

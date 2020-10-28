@@ -299,7 +299,8 @@ public class TransactionSignature implements Comparable<TransactionSignature> {
 	 * 		if any of the offsets or lengths fall outside the bounds of the {@code contents}
 	 * 		array
 	 */
-	public TransactionSignature(final TransactionSignature other, final byte[] expandedPublicKey, final int publicKeyOffset,
+	public TransactionSignature(final TransactionSignature other, final byte[] expandedPublicKey,
+			final int publicKeyOffset,
 			final int publicKeyLength, final int messageOffset, final int messageLength) {
 		if (other == null) {
 			throw new NullPointerException("other");
@@ -382,7 +383,8 @@ public class TransactionSignature implements Comparable<TransactionSignature> {
 	 * @throws NullPointerException
 	 * 		if the {@code signature} or {@code dos} parameters are null
 	 */
-	private static void serialize(final TransactionSignature signature, final DataOutputStream dos, final int[] byteCount)
+	private static void serialize(final TransactionSignature signature, final DataOutputStream dos,
+			final int[] byteCount)
 			throws IOException {
 		if (signature == null) {
 			throw new NullPointerException("signature");
@@ -424,7 +426,8 @@ public class TransactionSignature implements Comparable<TransactionSignature> {
 	}
 
 	/**
-	 * Reconstructs a {@link TransactionSignature} object from a binary representation read from a {@link DataInputStream}.
+	 * Reconstructs a {@link TransactionSignature} object from a binary representation read from a {@link
+	 * DataInputStream}.
 	 *
 	 * @param dis
 	 * 		the {@link DataInputStream} from which to read
@@ -504,7 +507,8 @@ public class TransactionSignature implements Comparable<TransactionSignature> {
 		buffer.put(pk);
 		buffer.put(sig);
 
-		return new TransactionSignature(buffer.array(), msg.length + pk.length, sig.length, msg.length, pk.length, 0, msg.length,
+		return new TransactionSignature(buffer.array(), msg.length + pk.length, sig.length, msg.length, pk.length, 0,
+				msg.length,
 				sigType);
 	}
 
@@ -667,8 +671,9 @@ public class TransactionSignature implements Comparable<TransactionSignature> {
 	 * </p>
 	 *
 	 * @return a future linked to the signature verification state
-	 * @throws InterruptedException if any thread interrupted the current thread before or
-	 *         while the current thread was waiting
+	 * @throws InterruptedException
+	 * 		if any thread interrupted the current thread before or
+	 * 		while the current thread was waiting
 	 */
 	public synchronized Future<Void> waitForFuture() throws InterruptedException {
 		// Block until future becomes available

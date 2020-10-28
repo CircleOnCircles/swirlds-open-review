@@ -26,6 +26,7 @@ public class MerkleLeafIterator<R extends MerkleLeaf> extends MerkleDepthFirstIt
 	public MerkleLeafIterator(MerkleNode root) {
 		super(root);
 	}
+
 	/**
 	 * {@inheritDoc}
 	 */

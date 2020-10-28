@@ -14,14 +14,12 @@
 
 package com.swirlds.fcmap.internal;
 
+import com.swirlds.common.FCMKey;
+import com.swirlds.common.FCMValue;
 import com.swirlds.common.FastCopyable;
 import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.crypto.ImmutableHash;
 import com.swirlds.common.merkle.MerkleInternal;
-import com.swirlds.common.FCMKey;
-import com.swirlds.common.FCMValue;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public interface FCMNode<K extends FCMKey, V extends FCMValue>
 		extends MerkleInternal,

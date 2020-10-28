@@ -66,7 +66,7 @@ public class HashingOutputStream extends OutputStream {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void write(byte b[], int off, int len) throws IOException {
+	public void write(byte[] b, int off, int len) throws IOException {
 		if (b == null) {
 			throw new NullPointerException();
 		} else if ((off < 0) || (off > b.length) || (len < 0)

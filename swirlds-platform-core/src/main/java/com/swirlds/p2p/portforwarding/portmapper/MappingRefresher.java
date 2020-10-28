@@ -35,7 +35,7 @@ public class MappingRefresher implements Runnable {
 					Thread.currentThread().interrupt();
 					return;
 				}
-				
+
 				forwarder.refreshMappings();
 				Thread.sleep(sleep);
 			} catch (InterruptedException e) {

@@ -23,11 +23,13 @@ import java.util.NoSuchElementException;
 /**
  * Iterate over a merkle tree.
  *
- * @param <T> The type of node over which this iterator walks. Usually MerkleNode is the correct choice for this
- *           unless there is an implementation specific method required by one of the overridable methods in this
- *           iterator.
- * @param <R> The type of the node returned by this iterator. Nodes of type T are cast into type R before being
- *           returned by next().
+ * @param <T>
+ * 		The type of node over which this iterator walks. Usually MerkleNode is the correct choice for this
+ * 		unless there is an implementation specific method required by one of the overridable methods in this
+ * 		iterator.
+ * @param <R>
+ * 		The type of the node returned by this iterator. Nodes of type T are cast into type R before being
+ * 		returned by next().
  */
 public abstract class MerkleIterator<T extends MerkleNode, R extends T> implements Iterator<R> {
 
@@ -113,8 +115,10 @@ public abstract class MerkleIterator<T extends MerkleNode, R extends T> implemen
 	 * Useful if T is a subtype of MerkleNode but there are parts of the tree that do not implement T. This
 	 * allows for the iterator to ignore the parts of the tree that it should not (or can not) handle.
 	 *
-	 * @param parent Parent node
-	 * @param child Child node
+	 * @param parent
+	 * 		Parent node
+	 * @param child
+	 * 		Child node
 	 * @return Whether the child node should be considered or not
 	 */
 	protected boolean shouldChildBeConsidered(final T parent, final MerkleNode child) {

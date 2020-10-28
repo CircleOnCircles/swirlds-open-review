@@ -19,11 +19,10 @@ import com.swirlds.common.SwirldState.SwirldState2;
 import com.swirlds.common.Transaction;
 import com.swirlds.common.crypto.CryptoFactory;
 import com.swirlds.common.crypto.Cryptography;
-import com.swirlds.common.crypto.TransactionSignature;
 import com.swirlds.common.crypto.Hash;
-import com.swirlds.logging.LogMarker;
-import com.swirlds.common.merkle.hash.FutureMerkleHash;
+import com.swirlds.common.crypto.TransactionSignature;
 import com.swirlds.common.merkle.hash.MerkleHashChecker;
+import com.swirlds.logging.LogMarker;
 import com.swirlds.platform.state.SignedState;
 import com.swirlds.platform.state.StateInfo;
 import org.apache.commons.lang3.tuple.Pair;
@@ -42,6 +41,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -723,7 +723,7 @@ class EventFlow extends AbstractEventFlow {
 				}
 			}
 		} catch (InterruptedException ex) {
-			log.debug(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
+			log.error(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
 					"EventFlow::handleTransaction Interrupted [ nodeId = {} ]", platform.getSelfId().getId(), ex);
 			Thread.currentThread().interrupt();
 		} catch (Exception ex) {
@@ -796,11 +796,11 @@ class EventFlow extends AbstractEventFlow {
 
 		if (event.isLastOneBeforeShutdown() || // if eventstream is shuting down
 				event.isLastInRoundReceived()  // if we have a new shared state to sign
-				&& Settings.state.getSignedStateKeep() > 0 // we are keeping states
-				&& Settings.signedStateFreq > 0 // and we are signing states
-				&& (event.getRoundReceived() == 1 // the first round should be signed
-				// and every Nth should be signed, where N is signedStateFreq
-				|| event.getRoundReceived() % Settings.signedStateFreq == 0)) {
+						&& Settings.state.getSignedStateKeep() > 0 // we are keeping states
+						&& Settings.signedStateFreq > 0 // and we are signing states
+						&& (event.getRoundReceived() == 1 // the first round should be signed
+						// and every Nth should be signed, where N is signedStateFreq
+						|| event.getRoundReceived() % Settings.signedStateFreq == 0)) {
 
 			// the consensus timestamp for the signed state should be the timestamp of the last transaction
 			// in the last event. if the last event has no transactions, then it will be the timestamp of
@@ -947,9 +947,13 @@ class EventFlow extends AbstractEventFlow {
 		log.info(LogMarker.MERKLE_HASHING.getMarker(), "Starting hashing of SignedState");
 
 		// Use digestTreeAsync because it is significantly (10x+) faster for large trees
-		final FutureMerkleHash hashFuture = cryptography.digestTreeAsync(signedState);
+		final Future<Hash> hashFuture = cryptography.digestTreeAsync(signedState);
 		// wait for the hash to be computed
-		hashFuture.get();
+		try {
+			hashFuture.get();
+		} catch (ExecutionException ex) {
+			log.warn(LogMarker.MERKLE_HASHING.getMarker(), "Exception Occurred during SignedState hashing", ex);
+		}
 
 		if (Settings.checkSignedStateHashes) {
 			MerkleHashChecker.checkSync(cryptography, signedState, node ->

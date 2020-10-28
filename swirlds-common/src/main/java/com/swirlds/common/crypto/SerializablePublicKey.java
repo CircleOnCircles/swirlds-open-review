@@ -14,9 +14,9 @@
 
 package com.swirlds.common.crypto;
 
+import com.swirlds.common.io.SelfSerializable;
 import com.swirlds.common.io.SerializableDataInputStream;
 import com.swirlds.common.io.SerializableDataOutputStream;
-import com.swirlds.common.io.SelfSerializable;
 import com.swirlds.logging.LogMarker;
 
 import java.io.IOException;
@@ -107,7 +107,6 @@ public class SerializablePublicKey implements SelfSerializable {
 	 * @return the public key
 	 * @throws CryptographyException
 	 * 		if the algorithm is not available or the encoded key is invalid
-	 *
 	 */
 	public static PublicKey bytesToPublicKey(byte[] bytes, String keyType) {
 		try {
@@ -140,8 +139,14 @@ public class SerializablePublicKey implements SelfSerializable {
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		SerializablePublicKey that = (SerializablePublicKey) o;
 		return publicKey.equals(that.publicKey) &&
 				keyType == that.keyType;

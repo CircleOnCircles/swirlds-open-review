@@ -21,7 +21,6 @@ import com.swirlds.common.events.ConsensusEvent;
 import com.swirlds.common.io.SelfSerializable;
 import com.swirlds.common.io.SerializableDataInputStream;
 import com.swirlds.common.stream.ObjectStreamUtilities;
-import com.swirlds.platform.event.EventUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

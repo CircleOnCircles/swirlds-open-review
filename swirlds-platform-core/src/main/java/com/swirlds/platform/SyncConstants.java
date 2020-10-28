@@ -19,33 +19,33 @@ import java.io.DataInputStream;
 public abstract class SyncConstants {
 
 	/** periodically sent to the SyncListener to keep connections alive */
-	final static byte heartbeat = 0x40 /* 64 */;
+	final static byte HEARTBEAT = 0x40 /* 64 */;
 	/** a reply sent back when a heartbeat is received by the SyncListener */
-	final static byte heartbeatAck = 0x41 /* 65 */;
+	final static byte HEARTBEAT_ACK = 0x41 /* 65 */;
 	/** sent to request a sync */
-	final static byte commSyncRequest = 0x42 /* 66 */;
+	final static byte COMM_SYNC_REQUEST = 0x42 /* 66 */;
 	/** sent as a reply to commSyncFirst when accepting an incoming sync request */
-	final static byte commSyncAck = 0x43 /* 67 */;
+	final static byte COMM_SYNC_ACK = 0x43 /* 67 */;
 	/** sent as a reply to commSyncRequest when rejecting an incoming sync request (because too busy) */
-	final static byte commSyncNack = 0x44 /* 68 */;
+	final static byte COMM_SYNC_NACK = 0x44 /* 68 */;
 	/** sent at the end of a sync, to show it's done */
-	final static byte commSyncDone = 0x45 /* 69 */;
+	final static byte COMM_SYNC_DONE = 0x45 /* 69 */;
 	/** sent last while writing an event as part of a sync */
-	final static byte commEventLast = 0x46 /* 70 */;
+	final static byte COMM_EVENT_LAST = 0x46 /* 70 */;
 	/** sent after a new socket connection is made */
-	final static byte commConnect = 0x47 /* 71 */;
+	final static byte COMM_CONNECT = 0x47 /* 71 */;
 	/** sent before sending each event */
-	final static byte commEventNext = 0x48 /* 72 */;
+	final static byte COMM_EVENT_NEXT = 0x48 /* 72 */;
 	/** sent after all events have been sent for this sync */
-	final static byte commEventDone = 0x4a /* 74 */;
+	final static byte COMM_EVENT_DONE = 0x4a /* 74 */;
 	/** sent if a remote node asked for an event that has been discarded because its old */
-	final static byte commEventDiscarded = 0x4b /* 75 */;
+	final static byte COMM_EVENT_DISCARDED = 0x4b /* 75 */;
 	/** sent if a node wants to get latest signed state */
-	public final static byte commStateRequest = 0x4c /* 76 */;
+	public final static byte COMM_STATE_REQUEST = 0x4c /* 76 */;
 	/** sent as a reply to commStateRequest when accepting to transfer the latest state */
-	public final static byte commStateAck = 0x4d /* 77 */;
+	public final static byte COMM_STATE_ACK = 0x4d /* 77 */;
 	/** sent as a reply to commStateRequest when NOT accepting to transfer the latest state */
-	public final static byte commStateNack = 0x4e /* 78 */;
+	public final static byte COMM_STATE_NACK = 0x4e /* 78 */;
 	/** returned by {@link DataInputStream#read()} to indicate that the end of the stream has been reached */
-	final static byte commEndOfStream = -1;
+	final static byte COMM_END_OF_STREAM = -1;
 }

@@ -29,9 +29,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -65,7 +62,7 @@ public class SigSet implements FastCopyable<SigSet>, SelfSerializable {
 
 	/** get array where element i is the signature for the member with ID i */
 	SigInfo[] getSigInfosCopy() {
-		SigInfo a[] = new SigInfo[numMembers];
+		SigInfo[] a = new SigInfo[numMembers];
 		for (int i = 0; i < a.length; i++) {
 			a[i] = sigInfos.get(i);
 		}
@@ -194,7 +191,7 @@ public class SigSet implements FastCopyable<SigSet>, SelfSerializable {
 	public void copyFrom(SerializableDataInputStream inStream) throws IOException {
 		DataStreamUtils.readValidLong(inStream, "version", VERSION_ORIGINAL);
 		numMembers = inStream.readInt();
-		SigInfo sigInfoArr[] = new SigInfo[numMembers];
+		SigInfo[] sigInfoArr = new SigInfo[numMembers];
 		try {
 			sigInfoArr = Utilities.readFastCopyableArray(inStream,
 					SigInfo.class);
@@ -270,15 +267,20 @@ public class SigSet implements FastCopyable<SigSet>, SelfSerializable {
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
 
-		if (o == null || getClass() != o.getClass()) return false;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		SigSet sigSet = (SigSet) o;
 
 		if (sigInfos.length() != sigSet.sigInfos.length()) {
 			return false;
 		}
+
 		for (int i = 0; i < sigInfos.length(); i++) {
 			if (!Objects.equals(sigInfos.get(i), sigSet.sigInfos.get(i))) {
 				return false;

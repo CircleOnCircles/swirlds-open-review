@@ -76,7 +76,7 @@ public class SyncConnection {
 				if (conn != null) {
 					long bytesSent = conn.getBytesWrittenSinceLast();
 					result += bytesSent;
-					((com.swirlds.platform.Statistics)platform.getStats()).avgBytePerSecSent[i].update(bytesSent);
+					((com.swirlds.platform.Statistics) platform.getStats()).avgBytePerSecSent[i].update(bytesSent);
 				}
 			}
 		}
@@ -201,9 +201,8 @@ public class SyncConnection {
 	 * @return the new connection, or null if it couldn't connect on the first try
 	 */
 	static SyncConnection connect(
-		AbstractPlatform platform,
-		NodeId selfId, NodeId otherId)
-	{
+			AbstractPlatform platform,
+			NodeId selfId, NodeId otherId) {
 		log.debug(SYNC_START.getMarker(), "{} about to connect to {}",
 				platform.getSelfId(), otherId);
 
@@ -238,11 +237,11 @@ public class SyncConnection {
 			dos.flush();
 
 			int ack = dis.readInt(); // read the ACK for creating the connection
-			if (ack != SyncConstants.commConnect) {  // this is an ACK for creating the connection
+			if (ack != SyncConstants.COMM_CONNECT) {  // this is an ACK for creating the connection
 				clientSocket.close();
 				dos.close();
 				dis.close();
-				throw new Exception("ack is not " + SyncConstants.commConnect
+				throw new Exception("ack is not " + SyncConstants.COMM_CONNECT
 						+ ", it is " + ack);
 			}
 
@@ -326,7 +325,7 @@ public class SyncConnection {
 			otherId = new NodeId(false, platform.getHashgraph().getAddressBook().getId(otherKey));
 
 			dos.writeInt(conId);// send a connection ID number (chosen randomly)
-			dos.writeInt(SyncConstants.commConnect);// send an ACK for creating connection
+			dos.writeInt(SyncConstants.COMM_CONNECT);// send an ACK for creating connection
 			dos.flush();
 
 			// ignore invalid IDs, but store the streams for valid ones

@@ -78,7 +78,8 @@ public abstract class MerkleUtils {
 			sb.append("null\n");
 		} else {
 			String[] classElements = node.getClass().toString().split("\\.");
-			sb.append(classElements[classElements.length - 1]).append(": " + (printNodeDescription ? node.toString() : ""));
+			sb.append(classElements[classElements.length - 1]).append(
+					": " + (printNodeDescription ? node.toString() : ""));
 
 			if (node.isLeaf()) {
 				sb.append(node.toString()).append("\n");

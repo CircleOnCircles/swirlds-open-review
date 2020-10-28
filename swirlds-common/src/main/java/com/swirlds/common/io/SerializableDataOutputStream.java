@@ -16,13 +16,14 @@ package com.swirlds.common.io;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
-import static com.swirlds.common.io.SerializableStreamConstants.*;
+import static com.swirlds.common.io.SerializableStreamConstants.NULL_CLASS_ID;
+import static com.swirlds.common.io.SerializableStreamConstants.NULL_LIST_ARRAY_LENGTH;
+import static com.swirlds.common.io.SerializableStreamConstants.NULL_VERSION;
+import static com.swirlds.common.io.SerializableStreamConstants.SERIALIZATION_PROTOCOL_VERSION;
 
 /**
  * A drop-in replacement for {@link DataOutputStream}, which handles SerializableDet classes specially.

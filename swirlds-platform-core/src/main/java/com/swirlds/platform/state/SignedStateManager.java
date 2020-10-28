@@ -17,10 +17,8 @@ import com.swirlds.common.AutoCloseableWrapper;
 import com.swirlds.common.InvalidSignedStateListener;
 import com.swirlds.common.NodeId;
 import com.swirlds.common.SwirldState;
-import com.swirlds.common.crypto.CryptoFactory;
 import com.swirlds.common.internal.JsonExporterSettings;
 import com.swirlds.common.internal.SettingsCommon;
-import com.swirlds.common.merkle.hash.MerkleHashChecker;
 import com.swirlds.common.threading.StandardThreadFactory;
 import com.swirlds.platform.AbstractPlatform;
 import com.swirlds.platform.Crypto;
@@ -53,7 +51,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static com.swirlds.common.CommonUtils.hex;
-import static com.swirlds.logging.LogMarker.STARTUP;
 import static com.swirlds.logging.LogMarker.EXCEPTION;
 import static com.swirlds.logging.LogMarker.FREEZE;
 import static com.swirlds.logging.LogMarker.LAST_COMPLETE_SIGNED_STATE;
@@ -472,13 +469,14 @@ public class SignedStateManager {
 				log.info(FREEZE.getMarker(), "Freeze state is about to be saved to disk, round is {}",
 						ss.getLastRoundReceived());
 			} else {
-				if (stateSettings.getSaveStatePeriod() == 0)
+				if (stateSettings.getSaveStatePeriod() == 0) {
 					log.info(FREEZE.getMarker(),
 							"Freeze WILL NOT be saved to disk since saveStatePeriod is 0 in settings. " +
 									"Last state saved to disk is for round {}", lastSSRoundGoingToDisk);
-				else
+				} else {
 					log.info(FREEZE.getMarker(), "Freeze WILL NOT be saved to disk since there are no new user " +
 							"transactions. Last state saved to disk is for round {}", lastSSRoundGoingToDisk);
+				}
 			}
 		}
 

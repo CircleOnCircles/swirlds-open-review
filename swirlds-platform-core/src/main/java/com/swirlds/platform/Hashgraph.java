@@ -18,6 +18,7 @@ import com.swirlds.common.AddressBook;
 import com.swirlds.common.NodeId;
 import com.swirlds.common.Transaction;
 import com.swirlds.common.crypto.CryptoFactory;
+import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.crypto.TransactionSignature;
 import com.swirlds.common.events.BaseEventHashedData;
 import com.swirlds.common.events.BaseEventUnhashedData;
@@ -39,7 +40,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,6 +63,7 @@ import static com.swirlds.logging.LogMarker.RECONNECT;
 import static com.swirlds.logging.LogMarker.STALE_EVENTS;
 import static com.swirlds.logging.LogMarker.STARTUP;
 import static com.swirlds.logging.LogMarker.SYNC;
+import static com.swirlds.logging.LogMarker.SYNC_SGM;
 import static com.swirlds.logging.LogMarker.TESTING_EXCEPTIONS;
 import static com.swirlds.logging.LogMarker.TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT;
 
@@ -157,7 +158,8 @@ class Hashgraph extends AbstractHashgraph {
 				platform::getStats,
 				(l1, l2) -> platform.getEventFlow().addMinGenInfo(l1, l2),
 				selfId,
-				latestAddressBook);
+				latestAddressBook,
+				platform.getSyncShadowGraphManager());
 
 		int n = addressBook.getSize();
 		firstSeq = new AtomicLongArray(n);
@@ -201,6 +203,21 @@ class Hashgraph extends AbstractHashgraph {
 	@Override
 	long getMinGenerationNonAncient() {
 		return consensus.getMinGenerationNonAncient();
+	}
+
+	@Override
+	long getMinGenerationNonExpired() {
+		return consensus.getMinGenerationNonExpired();
+	}
+
+	@Override
+	long getMinRoundNonExpired() {
+		return consensus.getMinRoundNonExpired();
+	}
+
+	@Override
+	List<Hash> getJudgeHashes(long round) {
+		return consensus.getJudgeHashes(round);
 	}
 
 	private void startThreadPollIntakeQueue() {
@@ -511,8 +528,9 @@ class Hashgraph extends AbstractHashgraph {
 			return null;
 		}
 
-		// record the event in the hashgraph, which results in the events in consEvent reaching consensus
-		List<EventImpl> consEvents = consensus.addEvent(event, latestAddressBook);
+		// record the `event` in the hashgraph. `newConsensusEvents` is the result: the events in newConsensusEvents reached consensus
+		// during this call
+		List<EventImpl> newConsensusEvents = consensus.addEvent(event, latestAddressBook);
 
 		// set the max generation
 		maxGeneration = Math.max(maxGeneration, event.getGeneration());
@@ -548,8 +566,8 @@ class Hashgraph extends AbstractHashgraph {
 					ecMaxByMemberIndex.toString(), toString(supMin));
 		}*/
 
-		if (consEvents != null) {
-			for (EventImpl e : consEvents) {
+		if (newConsensusEvents != null) {
+			for (EventImpl e : newConsensusEvents) {
 				// check if this event has user transactions, if it does, decrement the counter
 				if (e.hasUserTransactions()) {
 					numUserTransEvents--;
@@ -584,7 +602,8 @@ class Hashgraph extends AbstractHashgraph {
 			log.warn(STALE_EVENTS.getMarker(), "Stale event ({},{})",
 					e.getCreatorId(), e.getCreatorSeq());
 		}
-		return consEvents;
+
+		return newConsensusEvents;
 	}
 
 	/**
@@ -611,7 +630,8 @@ class Hashgraph extends AbstractHashgraph {
 				(l1, l2) -> platform.getEventFlow().addMinGenInfo(l1, l2),
 				selfId,
 				latestAddressBook,
-				signedState);
+				signedState,
+				platform.getSyncShadowGraphManager());
 
 		// Data that is needed for the intake system to work
 		for (int i = 0; i < signedState.getEvents().length; i++) {
@@ -810,11 +830,21 @@ class Hashgraph extends AbstractHashgraph {
 					// this is a duplicate, ignore it
 					platform.getStats().duplicateEventsPerSecond.cycle();
 					platform.getStats().avgDuplicatePercent.recordValue(100); // move toward 100%
-					//if (intake == null ) { // not in intakeMap but already in hashgraph need remove
-					//	log.error(Settings.EXCEPTION, "already in hashgraph {}", eventInfo);
-					//} else { // intake != null
-					//	log.error(Settings.EXCEPTION, "already in intakeMap {}", eventInfo);
-					//}
+//					if (intake == null ) { // not in intakeMap but already in hashgraph need remove
+//						log.error(
+//								SYNC_SGM.getMarker(),"{} event ({},{}) already in hashgraph: {}, sp = {}",
+//								selfId,
+//								hashgraph.getCreatorId(), hashgraph.getSeq(),
+//								hashgraph.getBaseEventHashedData().getHash().toString().substring(0, 4),
+//								hashgraph.getSelfParentHash() != null ? hashgraph.getSelfParentHash().toString().substring(0, 4) : "null");
+//					} else { // intake != null
+//						log.error(
+//								SYNC_SGM.getMarker(), "{} event ({},{}) already in intakeQueue: {}, sp = {}",
+//								selfId,
+//								intake.getEvent().getCreatorId(), intake.getEvent().getSeq(),
+//								intake.getEvent().getBaseHash().toString().substring(0, 4),
+//								intake.getEvent().getSelfParentHash() != null ? intake.getEvent().getSelfParentHash().toString().substring(0, 4) : "null");
+//					}
 					return;
 				}
 				log.debug(INTAKE_EVENT.getMarker(),
@@ -832,14 +862,25 @@ class Hashgraph extends AbstractHashgraph {
 						// if a parent is missing, then its generation should be smaller than the minimum
 						// generation. if its not smaller, then we do not accept this event
 						log.error(INVALID_EVENT_ERROR.getMarker(),
-								"{} Invalid event! selfParent of ({},{}) is missing." +
+								"{} Invalid event! selfParent({},{}) of ({},{}) is missing." +
 										" Claimed self parent gen:{} min gen:{}\n" +
 										" Self-parent hash  = {}\n" +
 										" Other-parent hash = {}",
-								selfId, validateEventTask.getCreatorId(), validateEventTask.getCreatorSeq(),
+								selfId,
+								(validateEventTask.getSelfParent() != null && validateEventTask.getSelfParent().getEvent() != null) ?
+										validateEventTask.getSelfParent().getEvent().getCreatorId() :
+										"null",
+								(validateEventTask.getSelfParent() != null && validateEventTask.getSelfParent().getEvent() != null) ?
+										validateEventTask.getSelfParent().getEvent().getCreatorSeq() :
+										"null",
+								validateEventTask.getCreatorId(), validateEventTask.getCreatorSeq(),
 								validateEventTask.getSelfParentGen(), minGeneration,
-								validateEventTask.getSelfParentHashInstance(),
-								validateEventTask.getOtherParentHashInstance());
+								validateEventTask.getSelfParentHashInstance() != null ?
+										validateEventTask.getSelfParentHashInstance().toString().substring(0, 4) :
+										"null",
+								validateEventTask.getOtherParentHashInstance() != null ?
+										validateEventTask.getOtherParentHashInstance().toString().substring(0, 4) :
+										"null");
 						return;
 					}
 				}
@@ -856,11 +897,12 @@ class Hashgraph extends AbstractHashgraph {
 										" Claimed other parent gen:{} min gen:{}\n" +
 										" Self-parent hash  = {}\n" +
 										" Other-parent hash = {}",
-								selfId, validateEventTask.getOtherId(), validateEventTask.getOtherSeq(),
+								selfId,
+								validateEventTask.getOtherId(), validateEventTask.getOtherSeq(),
 								validateEventTask.getCreatorId(), validateEventTask.getCreatorSeq(),
 								validateEventTask.getOtherParentGen(), minGeneration,
-								validateEventTask.getSelfParentHashInstance(),
-								validateEventTask.getOtherParentHashInstance());
+								validateEventTask.getSelfParentHashInstance().toString().substring(0, 4),
+								validateEventTask.getOtherParentHashInstance().toString().substring(0, 4));
 
 						validateEventTask.clearParents();
 						return;
@@ -967,7 +1009,7 @@ class Hashgraph extends AbstractHashgraph {
 				// making V2's event be null.
 				// in processIntakeEvent(v1), its self parent's event would return null
 				if (selfParent == null) {
-					log.debug(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
+					log.error(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
 							"Self parent returned null, event: {}", validateEventTask);
 					validateEventTask.setEventNull();
 					return;
@@ -1006,7 +1048,7 @@ class Hashgraph extends AbstractHashgraph {
 				// making v2's event be null.
 				// in processIntakeEvent(v1), its other parent's event would return null
 				if (otherParent == null) {
-					log.debug(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
+					log.error(TESTING_EXCEPTIONS_ACCEPTABLE_RECONNECT.getMarker(),
 							"Other parent returned null, event: {}", validateEventTask);
 					validateEventTask.setEventNull();
 					return;
@@ -1396,7 +1438,31 @@ class Hashgraph extends AbstractHashgraph {
 
 		// add to hashgraph, and if any older events become consensus, then this will
 		// acquire the appropriate lock and add them to forCons
-		consRecordEvent(event);
+		final List<EventImpl> newConsensusEvents = consRecordEvent(event);
+		final boolean newConsensus = newConsensusEvents != null;
+
+		SyncShadowGraphManager sgm = platform.getSyncShadowGraphManager();
+
+		// (Shadow Graph Manager may be null for testing.)
+		if (sgm != null) {
+			log.debug(SYNC_SGM.getMarker(), selfId + "      `Hashgraph.intakeQueueHandler`: adding to shadow graph: event {}, creator ID = {}",
+					EventUtils.briefBaseHash(event), event.getCreatorId());
+			sgm.addEvent(event);
+		}
+
+		// If no new consensus, the expired generation has not been increased, so nothing
+		// to expire from the shadow graph.
+		if (newConsensus) {
+			// (Shadow Graph Manager may be null for testing.)
+			if (sgm != null) {
+				int nExpired = sgm.expire(this.getMinGenerationNonExpired() - 1);
+				if(nExpired > 0) {
+					log.debug(SYNC_SGM.getMarker(),
+							selfId + "      `Hashgraph.intakeQueueHandler`: purged {} expired shadow events",
+							nExpired);
+				}
+			}
+		}
 
 		// once the event has been added to the hashgraph map, and its parents have been checked, we can
 		// remove the eventInfo object from the map and clear its parents
@@ -1669,7 +1735,7 @@ class Hashgraph extends AbstractHashgraph {
 		}
 
 		if (delta > Settings.syncStaleEventCompThreshold) {
-			log.debug(RECONNECT.getMarker(),
+			log.info(RECONNECT.getMarker(),
 					"Failed to compensate for stale events during gossip due to delta exceeding threshold ( selfId = " +
 							"{}, otherId = {}, selfSeq = {}, otherSeq = " +
 							"{}, delta = {}, threshold = {} )",
@@ -1678,7 +1744,7 @@ class Hashgraph extends AbstractHashgraph {
 		}
 
 		lastSeq.set(selfId.getIdAsInt(), otherSeq);
-		log.debug(RECONNECT.getMarker(),
+		log.info(RECONNECT.getMarker(),
 				"Compensating for stale events during gossip ( selfId = {}, otherId = {}, selfSeq = {}, otherSeq = " +
 						"{}, delta = {} )",
 				selfId, otherId, selfSeq, otherSeq, delta);

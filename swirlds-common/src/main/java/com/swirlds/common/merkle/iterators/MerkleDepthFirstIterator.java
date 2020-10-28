@@ -20,11 +20,14 @@ import java.util.Stack;
 
 /**
  * Iterates over a merkle tree in a post ordered depth first traversal.
- * @param <T> The type of node over which this iterator walks. Usually MerkleNode is the correct choice for this
- *           unless there is an implementation specific method required by one of the overridable methods in this
- *           iterator.
- * @param <R> The type of the node returned by this iterator. Nodes of type T are cast into type R before being
- *           returned by next().
+ *
+ * @param <T>
+ * 		The type of node over which this iterator walks. Usually MerkleNode is the correct choice for this
+ * 		unless there is an implementation specific method required by one of the overridable methods in this
+ * 		iterator.
+ * @param <R>
+ * 		The type of the node returned by this iterator. Nodes of type T are cast into type R before being
+ * 		returned by next().
  */
 public class MerkleDepthFirstIterator<T extends MerkleNode, R extends T> extends MerkleIterator<T, R> {
 

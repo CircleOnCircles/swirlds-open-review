@@ -15,134 +15,134 @@ package com.swirlds.platform;
 
 import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.events.Event;
+import com.swirlds.platform.event.EventUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 class SyncShadowEvent {
-	Event event; // the real event
-	SyncShadowEvent selfParent, otherParent;
-	List<SyncShadowEvent> selfChildren, otherChildren;
-	long sequenceNumber;
-	long searchMark, syncMark;
+	private final Event event; // the real event
+	private final List<SyncShadowEvent> selfChildren;
+	private final List<SyncShadowEvent> otherChildren;
 
-	SyncShadowEvent(Event event, SyncShadowEvent selfParent, SyncShadowEvent otherParent) {
+	private SyncShadowEvent selfParent;
+	private SyncShadowEvent otherParent;
+
+	SyncShadowEvent(final Event event, final SyncShadowEvent selfParent, final SyncShadowEvent otherParent) {
 		this(event);
 		setSelfParent(selfParent);
 		setOtherParent(otherParent);
-		this.sequenceNumber = event.getSeq();
 	}
 
-	SyncShadowEvent(Event event) {
+	SyncShadowEvent(final Event event) {
 		this.event = event;
 		this.selfParent = null;
 		this.otherParent = null;
 		this.selfChildren = new ArrayList<>();
 		this.otherChildren = new ArrayList<>();
-		this.sequenceNumber = event.getSeq();
+	}
+
+	SyncShadowEvent getSelfParent() {
+		return this.selfParent;
+	}
+
+	SyncShadowEvent getOtherParent() {
+		return this.otherParent;
+	}
+
+	void setSelfParent(final SyncShadowEvent s) {
+		if (s != null) {
+			selfParent = s;
+
+			if (!s.selfChildren.contains(this)) {
+				s.selfChildren.add(this);
+			}
+		} else {
+			removeSelfParent();
+		}
+	}
+
+	void setOtherParent(final SyncShadowEvent s) {
+		if (s != null) {
+			otherParent = s;
+
+			if (!s.otherChildren.contains(this)) {
+				s.otherChildren.add(this);
+			}
+		} else {
+			removeOtherParent();
+		}
+	}
+
+	List<SyncShadowEvent> getSelfChildren() {
+		return selfChildren;
+	}
+
+	List<SyncShadowEvent> getOtherChildren() {
+		return otherChildren;
+	}
+
+	int getNumSelfChildren() {
+		return selfChildren.size();
+	}
+
+	int getNumOtherChildren() {
+		return otherChildren.size();
+	}
+
+	Event getEvent() {
+		return event;
 	}
 
 	/**
-	 * The hash of a event shadow is the hash of the event
+	 * The cryptographic hash of an event shadow is the cryptographic hash of the event base
+	 *
+	 * @return The cryptographic base hash of an event.
 	 */
-	Hash getBaseEventHash() {
-		return ((EventImpl) event).getBaseHash();
+	Hash getEventBaseHash() {
+		return event.getBaseHash();
 	}
 
 	boolean isTip() {
 		return selfChildren.size() == 0;
 	}
 
-	void markForSearch() {
-		searchMark++;
-	}
-
-	void markForSync() {
-		syncMark++;
-	}
-
 	void disconnect() {
 		removeSelfParent();
 		removeOtherParent();
 
-		for(SyncShadowEvent s : selfChildren)
+		for (SyncShadowEvent s : selfChildren) {
 			s.selfParent = null;
-		for(SyncShadowEvent s : otherChildren)
-			s.otherParent= null;
+		}
+
+		for (SyncShadowEvent s : otherChildren) {
+			s.otherParent = null;
+		}
 
 		selfChildren.clear();
 		otherChildren.clear();
 	}
 
-	boolean hasSelfDescendant(SyncShadowEvent y) {
-		if(y == null)
-			return false;
-		if(this == y)
-			return true;
-
-		for(SyncShadowEvent sc : this.selfChildren)
-			if(sc.hasSelfDescendant(y))
-				return true;
-
-		return false;
-	}
-
-	boolean hasDescendant(SyncShadowEvent y) {
-		if(y == null)
-			return false;
-		if(this == y)
-			return true;
-
-		for(SyncShadowEvent sc : this.selfChildren)
-			if(sc.hasDescendant(y))
-				return true;
-
-		for(SyncShadowEvent oc : this.otherChildren)
-			if(oc.hasDescendant(y))
-				return true;
-
-		return false;
-	}
-
-
-	void addSelfChild(SyncShadowEvent s) {
-		if (s != null)
+	void addSelfChild(final SyncShadowEvent s) {
+		if (s != null) {
 			s.setSelfParent(this);
+		}
 	}
 
-	void addOtherChild(SyncShadowEvent s) {
-		if (s != null)
+	void addOtherChild(final SyncShadowEvent s) {
+		if (s != null) {
 			s.setOtherParent(this);
-	}
-
-	void setSelfParent(SyncShadowEvent s) {
-		if (s != null) {
-			selfParent = s;
-			if (!s.selfChildren.contains(s))
-				s.selfChildren.add(this);
 		}
-		else
-			removeSelfParent();
 	}
 
-	void setOtherParent(SyncShadowEvent s) {
-		if (s != null) {
-			otherParent = s;
-			if (!s.otherChildren.contains(s))
-				s.otherChildren.add(this);
-		}
-		else
-			removeOtherParent();
-	}
-
-	void removeSelfParent() {
+	private void removeSelfParent() {
 		if (selfParent != null) {
 			selfParent.selfChildren.remove(this);
 			selfParent = null;
 		}
 	}
 
-	void removeOtherParent() {
+	private void removeOtherParent() {
 		if (otherParent != null) {
 			otherParent.otherChildren.remove(this);
 			otherParent = null;
@@ -150,18 +150,30 @@ class SyncShadowEvent {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o)
+	public boolean equals(final Object o) {
+		if (this == o) {
 			return true;
+		}
 
-		if (!(o instanceof SyncShadowEvent))
+		if (!(o instanceof SyncShadowEvent)) {
 			return false;
+		}
 
 		final SyncShadowEvent s = (SyncShadowEvent) o;
 
-		return getBaseEventHash().equals(s.getBaseEventHash());
+		return getEventBaseHash().equals(s.getEventBaseHash());
 	}
 
+
+	String logString() {
+		return String.format("%s(%s, %s), sp = %s(%s, %s), op = %s(%s, %s)",
+			EventUtils.briefBaseHash(event),
+			EventUtils.creator(event), EventUtils.seq(event),
+			EventUtils.briefBaseHash(event.getSelfParent()),
+			EventUtils.creator(event.getSelfParent()), EventUtils.seq(event.getSelfParent()),
+			EventUtils.briefBaseHash(event.getOtherParent()),
+			EventUtils.creator(event.getOtherParent()), EventUtils.seq(event.getOtherParent()));
+	}
 }
 
 

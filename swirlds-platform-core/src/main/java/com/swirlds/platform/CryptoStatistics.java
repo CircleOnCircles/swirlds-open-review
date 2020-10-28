@@ -17,8 +17,8 @@
  */
 package com.swirlds.platform;
 
-import com.swirlds.common.internal.AbstractStatistics;
 import com.swirlds.common.StatEntry;
+import com.swirlds.common.internal.AbstractStatistics;
 
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -97,7 +97,7 @@ public class Hash extends HashUtils implements Comparable<Hash> {
 
 	public static Hash readHash(DataInputStream dis) throws IOException {
 		int hashMapSeed = dis.readInt();
-		byte hash[] = Utilities.readByteArray(dis);
+		byte[] hash = Utilities.readByteArray(dis);
 		return new Hash(hash, hashMapSeed);
 	}
 
@@ -133,7 +133,7 @@ public class Hash extends HashUtils implements Comparable<Hash> {
 		return 0;
 	}
 
-	public byte[] getValue(){
+	public byte[] getValue() {
 		return hash;
 	}
 }

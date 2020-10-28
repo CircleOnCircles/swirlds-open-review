@@ -14,11 +14,10 @@
 
 package com.swirlds.fcmap.internal;
 
-import com.swirlds.common.merkle.MerkleNode;
-import com.swirlds.common.merkle.iterators.MerkleBreadthFirstIterator;
-import com.swirlds.common.merkle.iterators.MerkleDepthFirstIterator;
 import com.swirlds.common.FCMKey;
 import com.swirlds.common.FCMValue;
+import com.swirlds.common.merkle.MerkleNode;
+import com.swirlds.common.merkle.iterators.MerkleBreadthFirstIterator;
 
 public class MerkleFCMNodeIterator<K extends FCMKey, V extends FCMValue>
 		extends MerkleBreadthFirstIterator<FCMNode<K, V>, FCMNode<K, V>> {

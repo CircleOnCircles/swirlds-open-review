@@ -13,8 +13,8 @@
  */
 package com.swirlds.platform;
 
-import com.swirlds.common.events.Event;
 import com.swirlds.common.crypto.Hash;
+import com.swirlds.common.events.Event;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,111 +39,130 @@ class SyncShadowGraph implements Iterable<SyncShadowEvent> {
 	}
 
 	SyncShadowGraph(AbstractHashgraph hashgraph) {
-		List<EventImpl> nonAncientEvents = new ArrayList<>();
+		List<EventImpl> nonExpiredEvents = new ArrayList<>();
 		EventImpl[] allEvents = hashgraph.getAllEvents();
-		for(EventImpl e : allEvents)
-			if(e.getGeneration() >= hashgraph.getMinGenerationNonAncient())
-				nonAncientEvents.add(e);
+
+		for (EventImpl e : allEvents) {
+			if (e.getGeneration() >= hashgraph.getMinGenerationNonExpired()) {
+				nonExpiredEvents.add(e);
+			}
+		}
 
 		this.hashToShadowEvent = new HashMap<>();
-		this.shadowEvents = construct(nonAncientEvents);
+		this.shadowEvents = construct(nonExpiredEvents);
+	}
+
+	int size() {
+		return shadowEvents.size();
 	}
 
 	SyncShadowEvent shadow(Event e) {
-		if (e == null)
+		if (e == null) {
 			return null;
-		return hashToShadowEvent.get(((EventImpl) e).getBaseHash());
+		}
+
+		return hashToShadowEvent.get(e.getBaseHash());
 	}
 
-	SyncShadowEvent shadow(Hash hash)
-	{
+	SyncShadowEvent shadow(Hash hash) {
 		return hashToShadowEvent.get(hash);
 	}
-
-//	boolean topologicalInsert(List<ShadowEvent> shadowEvents) {
-//		for(ShadowEvent shadowEvent : shadowEvents)
-//			if(!insert(shadowEvent))
-//				return false;
-//		return true;
-//	}
-//
-//	boolean insert(List<ShadowEvent> shadowEvents) {
-//		int count = shadowEvents.size();
-//		while(count != 0)
-//			for(ShadowEvent shadowEvent : shadowEvents)
-//				if(insert(shadowEvent))
-//					--count;
-//		return true;
-//	}
-//
-//	boolean insert(List<EventImpl> events) {
-//		int count = events.size();
-//		while(count != 0)
-//			for(Event e : events)
-//				if(insert(e))
-//					--count;
-//		return true;
-//	}
 
 	boolean insert(Event event) {
 		return insert(new SyncShadowEvent(event));
 	}
 
 	private boolean insert(SyncShadowEvent shadowEvent) {
-		if (shadowEvent == null)
+		if (shadowEvent == null) {
 			return false;
-		if (shadowEvent.event == null)
+		}
+
+		if (shadowEvent.getEvent() == null) {
 			return false;
+		}
 
-		SyncShadowEvent sp = shadow(shadowEvent.event.getSelfParent());
-		SyncShadowEvent op = shadow(shadowEvent.event.getOtherParent());
+		SyncShadowEvent sp = shadow(shadowEvent.getEvent().getSelfParent());
+		SyncShadowEvent op = shadow(shadowEvent.getEvent().getOtherParent());
 
-		if (sp != null)
+		if (sp != null) {
 			sp.addSelfChild(shadowEvent);
+		}
 
-		if (op != null)
+		if (op != null) {
 			op.addOtherChild(shadowEvent);
+		}
 
-		hashToShadowEvent.put(shadowEvent.getBaseEventHash(), shadowEvent);
+		hashToShadowEvent.put(shadowEvent.getEventBaseHash(), shadowEvent);
 		shadowEvents.add(shadowEvent);
 
 		return true;
 	}
 
-	int removeStrictAncestry(SyncShadowEvent s, Predicate<SyncShadowEvent> p) {
+	int removeStrictSelfAncestry(SyncShadowEvent s, Predicate<SyncShadowEvent> p) {
 		int count = 0;
-		count += removeAncestry(s.selfParent, p);
-		count += removeAncestry(s.otherParent, p);
+		count += removeSelfAncestry(s.getSelfParent(), p);
 		return count;
 	}
-	int removeAncestry(SyncShadowEvent s, Predicate<SyncShadowEvent> p) {
-		if(s == null)
+
+	int removeSelfAncestry(SyncShadowEvent s) {
+		return removeSelfAncestry(s, (x) -> true);
+	}
+
+	int removeSelfAncestry(SyncShadowEvent s, Predicate<SyncShadowEvent> p) {
+		if (s == null) {
 			return 0;
+		}
 
 		int count = 0;
 
-		count += removeAncestry(s.selfParent, p);
-		count += removeAncestry(s.otherParent, p);
+		count += removeSelfAncestry(s.getSelfParent(), p);
 
-		if(p.test(s))
+		if (p.test(s)) {
 			count += remove(s) ? 1 : 0;
+		}
+
+		return count;
+	}
+
+	int removeStrictAncestry(SyncShadowEvent s, Predicate<SyncShadowEvent> p) {
+		int count = 0;
+		count += removeAncestry(s.getSelfParent(), p);
+		count += removeAncestry(s.getOtherParent(), p);
+		return count;
+	}
+
+	int removeAncestry(SyncShadowEvent s, Predicate<SyncShadowEvent> p) {
+		if (s == null) {
+			return 0;
+		}
+
+		int count = 0;
+
+		count += removeAncestry(s.getSelfParent(), p);
+		count += removeAncestry(s.getOtherParent(), p);
+
+		if (p.test(s)) {
+			count += remove(s) ? 1 : 0;
+		}
 
 		return count;
 	}
 
 	int removeAncestry(SyncShadowEvent s) {
-		return removeAncestry(s, (ShadowEvent) -> true);
+		return removeAncestry(s, (x) -> true);
 	}
 
 	private boolean remove(SyncShadowEvent s) {
-		if (s == null)
+		if (s == null) {
 			return false;
+		}
 
-		if(!shadowEvents.contains(s))
+		if (!shadowEvents.contains(s)) {
 			return false;
+		}
 
 		s.disconnect();
-		hashToShadowEvent.remove(s.getBaseEventHash());
+		hashToShadowEvent.remove(s.getEventBaseHash());
 		shadowEvents.remove(s);
 
 		return true;
@@ -155,34 +174,49 @@ class SyncShadowGraph implements Iterable<SyncShadowEvent> {
 
 	private HashSet<SyncShadowEvent> constructByLoops(EventImpl[] events) {
 		List<SyncShadowEvent> shadowEvents = new ArrayList<>();
-		for (int i = 0; i < events.length; ++i)
-			if(events[i].getBaseHash() != null)
+		for (int i = 0; i < events.length; ++i) {
+			if (events[i].getBaseHash() != null) {
 				shadowEvents.add(new SyncShadowEvent(events[i]));
-
-		SyncShadowEvent s[] = shadowEvents.toArray(new SyncShadowEvent[0]);
-
-		for (int i = 0; i < s.length; ++i)
-			for (int j = 0; j < s.length; ++j) {
-				if (s[i].event.getSelfParent() == s[j].event)
-					s[i].selfParent = s[j];
-				if (s[j].event.getSelfParent() == s[i].event)
-					s[j].selfParent = s[i];
-				if (s[i].event.getOtherParent() == s[j].event)
-					s[i].otherParent = s[j];
-				if (s[j].event.getOtherParent() == s[i].event)
-					s[j].otherParent = s[i];
 			}
+		}
 
-		for (int i = 0; i < s.length; ++i)
+		SyncShadowEvent[] s = shadowEvents.toArray(new SyncShadowEvent[0]);
+
+		for (int i = 0; i < s.length; ++i) {
 			for (int j = 0; j < s.length; ++j) {
-				if (s[j].selfParent == s[i])
-					s[i].selfChildren.add(s[j]);
-				if (s[j].otherParent == s[i])
-					s[i].otherChildren.add(s[j]);
-			}
+				if (s[i].getEvent().getSelfParent() == s[j].getEvent()) {
+					s[i].setSelfParent(s[j]);
+				}
 
-		for (SyncShadowEvent ss : s)
-			hashToShadowEvent.put(((EventImpl) ss.event).getBaseHash(), ss);
+				if (s[j].getEvent().getSelfParent() == s[i].getEvent()) {
+					s[j].setSelfParent(s[i]);
+				}
+
+				if (s[i].getEvent().getOtherParent() == s[j].getEvent()) {
+					s[i].setOtherParent(s[j]);
+				}
+
+				if (s[j].getEvent().getOtherParent() == s[i].getEvent()) {
+					s[j].setOtherParent(s[i]);
+				}
+			}
+		}
+
+		for (int i = 0; i < s.length; ++i) {
+			for (int j = 0; j < s.length; ++j) {
+				if (s[j].getSelfParent() == s[i]) {
+					s[i].addSelfChild(s[j]);
+				}
+
+				if (s[j].getOtherParent() == s[i]) {
+					s[i].addOtherChild(s[j]);
+				}
+			}
+		}
+
+		for (SyncShadowEvent ss : s) {
+			hashToShadowEvent.put(ss.getEventBaseHash(), ss);
+		}
 
 		return new HashSet<>(Arrays.asList(s));
 	}

@@ -55,6 +55,8 @@ class SyncListener implements Runnable {
 	/** ID number for other member (the one self is listening for) */
 	private final NodeId otherId;
 
+	private SyncData syncData = new SyncData();
+
 	/**
 	 * the platform instantiates the SyncListener, and gives it a reference to itself, plus other info that
 	 * will be useful to it. The SyncListener will forever listen for incoming sync calls from a single,
@@ -242,32 +244,63 @@ class SyncListener implements Runnable {
 		if (dos == null) {
 			return false; // there is no connection to otherId, so return immediately
 		}
-		if (b == SyncConstants.heartbeat) {
+		if (b == SyncConstants.HEARTBEAT) {
 			log.debug(HEARTBEAT.getMarker(), "received heartbeat");
-			dos.writeByte(SyncConstants.heartbeatAck);
+			dos.writeByte(SyncConstants.HEARTBEAT_ACK);
 			dos.flush();
 			log.debug(HEARTBEAT.getMarker(), "sent heartbeatACK");
 			return true;
-		} else if (b == SyncConstants.commSyncRequest) {
+		} else if (b == SyncConstants.COMM_SYNC_REQUEST) {
 			log.debug(HEARTBEAT.getMarker(), "received commSyncRequest");
 			syncServer.numListenerSyncs.incrementAndGet(); // matching decr in finally
 			syncServer.numSyncs.incrementAndGet(); // matching decr in finally
 			try {
 				if (platform.getSyncManager().hasFallenBehind()) {
 					// if we have fallen behind, dont accept any syncs
-					SyncUtils.sync(conn, false, false);
+					log.debug(SYNC_SGM.getMarker(),
+							"node {} has fallen behind. Incoming sync requests will not be accepted", selfId);
+
+					syncData.resetForSync();
+					SyncUtils.sync(conn, syncData, false, false);
+
+					log.debug(SYNC_SGM.getMarker(),
+							"Sizes after `sync`, workingTips: {}, receivedTipHashes: {}, sendList: {}",
+							syncData.workingTips.size(),
+							syncData.receivedTipHashes.size(),
+							syncData.sendList.size());
+
 				} else if (!lockCallListen
 						.tryLock("SyncListener.handleOneMsgOrException 1")) {
 					// caller is already syncing with otherId, so reply NACK
-					SyncUtils.sync(conn, false, false);
+//					log.debug(SYNC_SGM.getMarker(),
+//							"node {} is already syncing with {}. Incoming sync requests from {} will not be accepted", selfId, otherId, otherId);
+
+					syncData.resetForSync();
+					SyncUtils.sync(conn, syncData, false, false);
+					log.debug(SYNC_SGM.getMarker(),
+							"Sizes after `sync`, workingTips: {}, receivedTipHashes: {}, sendList: {}",
+							syncData.workingTips.size(),
+							syncData.receivedTipHashes.size(),
+							syncData.sendList.size());
+
 				} else {
 					log.debug(HEARTBEAT.getMarker(),
 							"SyncListener locked platform[{}].syncServer.lockCallListen[{}]",
 							platform.getSelfId(), otherId);
 					try {
 						boolean acceptIncoming = (platform.getSyncManager().shouldAcceptSync());
-						log.debug(SYNC_SGM.getMarker(), " `SyncListener.handleOneMsgOrException`: entering `SyncUtils.sync`");
-						SyncUtils.sync(conn, false, acceptIncoming);
+						if(!acceptIncoming)
+							log.debug(SYNC_SGM.getMarker(),
+									"platform.getSyncManager().shouldAcceptSync() returned false. Incoming sync requests will not be accepted.");
+
+						syncData.resetForSync();
+						SyncUtils.sync(conn, syncData, false, acceptIncoming);
+						log.debug(SYNC_SGM.getMarker(),
+								"Sizes after `sync`, workingTips: {}, receivedTipHashes: {}, sendList: {}",
+								syncData.workingTips.size(),
+								syncData.receivedTipHashes.size(),
+								syncData.sendList.size());
+
 					} finally {
 						lockCallListen.unlock(
 								"SyncListener.handleOneMsgOrException 2");
@@ -281,8 +314,8 @@ class SyncListener implements Runnable {
 				syncServer.numSyncs.decrementAndGet();
 			}
 			return true;
-		} else if (b == SyncConstants.commStateRequest) {
-			log.debug(RECONNECT.getMarker(), "{} got commStateRequest from {}", platform.getSelfId(), otherId);
+		} else if (b == SyncConstants.COMM_STATE_REQUEST) {
+			log.info(RECONNECT.getMarker(), "{} got commStateRequest from {}", platform.getSelfId(), otherId);
 
 			try (AutoCloseableWrapper<SignedState> stateWrapper =
 						 platform.getSignedStateManager().getLastCompleteSignedState()) {
@@ -292,7 +325,7 @@ class SyncListener implements Runnable {
 				platform.getSignedStateManager().jsonifySignedState(stateWrapper.get(), StateDumpSource.RECONNECT);
 
 				final int oid = otherId.getIdAsInt();
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
 						"Starting reconnect in the role of the sender",
 						false,
 						platform.getSelfId().getIdAsInt(),
@@ -302,7 +335,7 @@ class SyncListener implements Runnable {
 				ReconnectSender sender = new ReconnectSender(conn, stateWrapper.get());
 				sender.execute();
 
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
 						"Finished reconnect in the role of the sender.",
 						false,
 						platform.getSelfId().getIdAsInt(),
@@ -314,7 +347,7 @@ class SyncListener implements Runnable {
 		} else { // b is neither a heartbeat, a commStateRequest nor a commSyncRequest, so it's an error
 			log.debug(SYNC_START.getMarker(),
 					"listener {} received sync byte {} (should be {} or {}) from {}",
-					selfId, b, SyncConstants.commSyncRequest, SyncConstants.heartbeat, otherId);
+					selfId, b, SyncConstants.COMM_SYNC_REQUEST, SyncConstants.HEARTBEAT, otherId);
 			conn.disconnect(false, 8);
 			return false;
 		}

@@ -21,11 +21,14 @@ class StreamingAddress {
 	enum StreamMode {
 		STREAM_CONSENSUS_EVENT;
 		// more can be added later
-		
-	    private static StreamMode[] allValues = values();
-	    public static StreamMode fromOrdinal(int n) {return allValues[n];}
-	};
-	
+
+		private static StreamMode[] allValues = values();
+
+		public static StreamMode fromOrdinal(int n) {
+			return allValues[n];
+		}
+	}
+
 	/** Ip address of stream server */
 	String serverAddr;
 	/** TCP port number of stream server */
@@ -33,35 +36,44 @@ class StreamingAddress {
 	/** stream mode */
 	StreamMode mode = StreamMode.STREAM_CONSENSUS_EVENT;
 
-	KeyStore trustStore = null; /** keystore to store peer's certifciate   */
-	KeyStore privateKS = null;  /** keystore to save own private key pairs */
+	KeyStore trustStore = null;
+	/** keystore to store peer's certificate */
+	KeyStore privateKS = null;
+
+	/** keystore to save own private key pairs */
 	public String getStreamAddr() {
 		return serverAddr;
 	}
+
 	public int getPort() {
 		return port;
 	}
+
 	public StreamMode getStreamMode() {
 		return mode;
 	}
+
 	public KeyStore getTrustStore() {
 		return trustStore;
 	}
+
 	public void setTrustStore(KeyStore trustStore) {
 		this.trustStore = trustStore;
 	}
-	
+
 	public KeyStore getPrivateKS() {
 		return privateKS;
 	}
+
 	public void setPrivateKS(KeyStore privateKS) {
 		this.privateKS = privateKS;
 	}
+
 	public StreamingAddress(String serverAddr, int port, StreamMode mode) {
 		super();
 		this.serverAddr = serverAddr;
 		this.port = port;
 		this.mode = mode;
-	}	
-	
+	}
+
 }

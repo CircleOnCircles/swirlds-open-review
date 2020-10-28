@@ -17,10 +17,8 @@ package com.swirlds.common.merkle.hash;
 import com.swirlds.common.crypto.Hash;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class FutureMerkleHash implements Future<Hash> {
 
