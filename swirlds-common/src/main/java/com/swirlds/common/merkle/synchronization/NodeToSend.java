@@ -58,6 +58,7 @@ public class NodeToSend {
 
 	/**
 	 * This method is called when the ack for this node is received.
+	 *
 	 * @param affirmative
 	 */
 	public void registerAck(boolean affirmative) {

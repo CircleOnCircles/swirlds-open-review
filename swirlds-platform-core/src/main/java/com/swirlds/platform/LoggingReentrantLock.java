@@ -276,14 +276,6 @@ public class LoggingReentrantLock extends ReentrantLock {
 					break;
 				}
 				count++;
-				// String threadName = Thread.currentThread().getName();
-				// String lockName = String.format("%12s", "'" + name + "'");
-				// int duration = count * Settings.lockLogBlockTimeout;
-				// String err = String.format(//
-				// "%s still waiting on Lock %s at %s after %d ms while lock is held by %s from %s", //
-				// threadName, lockName, comment, duration, holdingThread,
-				// startComment);
-				// String threadName = Thread.currentThread().getName();
 				String lockName = String.format("%12s", "'" + name + "'");
 				int duration = count * Settings.lockLogBlockTimeout;
 				String err = String.format(//

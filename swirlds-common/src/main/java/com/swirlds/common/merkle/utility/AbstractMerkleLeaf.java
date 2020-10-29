@@ -17,7 +17,6 @@ package com.swirlds.common.merkle.utility;
 import com.swirlds.common.merkle.MerkleLeaf;
 
 /**
- *
  * This abstract class implements boiler plate functionality for a {@link MerkleLeaf}. Classes that implement
  * {@link MerkleLeaf} are not required to extend this class, but absent a reason it is recommended to avoid
  * re-implementation of this code.
@@ -30,7 +29,8 @@ public abstract class AbstractMerkleLeaf extends AbstractMerkleNode implements M
 	@Override
 	public synchronized final void release() {
 		if (getReferenceCount() > 0) {
-			throw new IllegalStateException("Nodes can only be deleted when the reference count equals 0. Ref. count = " + getReferenceCount());
+			throw new IllegalStateException(
+					"Nodes can only be deleted when the reference count equals 0. Ref. count = " + getReferenceCount());
 		}
 		if (!isReleased()) {
 			onRelease();

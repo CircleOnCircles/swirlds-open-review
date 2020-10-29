@@ -60,6 +60,9 @@ class SyncCaller implements Runnable {
 	/** the type of this caller */
 	private SyncCallerType callerType;
 
+
+	private final SyncData syncData = new SyncData();
+
 	/**
 	 * The platform instantiates this, and gives it the self ID number, plus other info that will be useful
 	 * to it. The platform can then create a thread to call run(). It will then repeatedly initiate syncs
@@ -252,12 +255,18 @@ class SyncCaller implements Runnable {
 							lockCallHeartbeat.setNote("about to sync");
 							platform.getSyncServer().numSyncs.incrementAndGet(); // matching decr in finally
 							try {
-								log.debug(SYNC_SGM.getMarker(), " `SyncCaller: entering `SyncUtils.sync`");
-								syncAccepted = SyncUtils.sync(conn, true,
-										false);
+								syncData.resetForSync();
+								syncAccepted = SyncUtils.sync(conn, syncData, true, false);
+								log.debug(SYNC_SGM.getMarker(),
+										"Sizes after `sync`, workingTips: {}, receivedTipHashes: {}, sendList: {}",
+										syncData.workingTips.size(),
+										syncData.receivedTipHashes.size(),
+										syncData.sendList.size());
+
 								if (syncAccepted) {
 									break;
 								}
+
 							} catch (IOException e) {
 								// IOException covers both SocketTimeoutException and EOFException, plus more
 								log.error(SOCKET_EXCEPTIONS.getMarker(),
@@ -337,7 +346,7 @@ class SyncCaller implements Runnable {
 			System.exit(0);
 		}
 
-		log.debug(RECONNECT.getMarker(),
+		log.info(RECONNECT.getMarker(),
 				"{} has fallen behind, will stop and clear EventFlow and Hashgraph",
 				platform.getSelfId());
 
@@ -353,7 +362,7 @@ class SyncCaller implements Runnable {
 
 		SyncConnection conn;
 		List<Long> reconnectNeighbors = platform.getSyncManager().getNeighborsForReconnect();
-		log.debug(RECONNECT.getMarker(),
+		log.info(RECONNECT.getMarker(),
 				"{} has fallen behind, will try to reconnect with {}",
 				platform::getSelfId, reconnectNeighbors::toString);
 
@@ -378,7 +387,7 @@ class SyncCaller implements Runnable {
 			}
 			SignedState signedState = null;
 			try {
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectStartPayload(
 						"Starting reconnect in role of the receiver.",
 						true,
 						platform.getSelfId().getIdAsInt(),
@@ -391,14 +400,14 @@ class SyncCaller implements Runnable {
 				signedState = reconnect.getSignedState();
 				final long lastRoundReceived = signedState.getLastRoundReceived();
 
-				log.debug(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
+				log.info(RECONNECT.getMarker(), () -> new ReconnectFinishPayload(
 						"Finished reconnect in the role of the receiver.",
 						true,
 						platform.getSelfId().getIdAsInt(),
 						neighborId.intValue(),
 						lastRoundReceived).toString());
 
-				log.debug(RECONNECT.getMarker(),
+				log.info(RECONNECT.getMarker(),
 						"signed state events:\n{}", EventUtils.toShortStrings(signedState.getEvents()));
 			} catch (Exception e) {
 				if (Utilities.isOrCausedBySocketException(e)) {

@@ -110,9 +110,7 @@ class WinTabNetwork extends WinBrowser.PrePaintableJPanel {
 	 */
 	void goTab(int n) {
 		requestFocus(true);
-		// tabbed.getSelectedComponent().setVisible(false);
 		tabbed.setSelectedIndex(n);
-		// tabbed.getSelectedComponent().setVisible(true);
 		WinBrowser.prePaintThenRepaint();
 	}
 }

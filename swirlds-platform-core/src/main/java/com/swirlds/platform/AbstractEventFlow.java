@@ -25,8 +25,10 @@ abstract class AbstractEventFlow {
 	 * Add the given event (which just became consensus) to the forCons queue, to later be sent to
 	 * stateCons.
 	 * <p>
-	 * When Hashgraph first finds consensus for an event, it puts the event into {@link RunningHashCalculator}'s queue, which will then call this method.
-	 * If the queue is full, then this will block until it isn't full, which will block whatever thread called Hashgraph.consRecordEvent.
+	 * When Hashgraph first finds consensus for an event, it puts the event into {@link RunningHashCalculator}'s queue,
+	 * which will then call this method.
+	 * If the queue is full, then this will block until it isn't full, which will block whatever thread called
+	 * Hashgraph.consRecordEvent.
 	 * <p>
 	 * Thread interruptions are ignored.
 	 *

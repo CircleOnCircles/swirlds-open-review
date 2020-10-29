@@ -17,10 +17,6 @@ package com.swirlds.platform;
  * All the meta data describing a particular swirld, including its name, public key, and text describing it.
  */
 class SwirldInfo {
-	// private String name = "";
-	// private String description = "";
-	// private byte[] publicKey = null;
-
 	SwirldInfo() {
 
 	}

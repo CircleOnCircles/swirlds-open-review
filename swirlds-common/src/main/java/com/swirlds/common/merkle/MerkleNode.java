@@ -82,7 +82,7 @@ public interface MerkleNode extends Releasable, Hashable, SerializableDet {
 
 	/**
 	 * @return the current reference count for this node. When newly created a node should have a reference count
-	 * of exactly 0.
+	 * 		of exactly 0.
 	 */
 	int getReferenceCount();
 

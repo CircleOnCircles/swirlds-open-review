@@ -290,13 +290,14 @@ public class SwirldsPlatform extends AbstractPlatform {
 		this.selfConnectionId = id;
 		// set here, then given to the state in run(). A copy of it is given to hashgraph.
 		this.initialAddressBook = initialAddressBook;
+
+		this.sgm = new SyncShadowGraphManager();
+
 		// hashgraph and state get separate copies of the address book
 		this.hashgraph = new Hashgraph(this, initialAddressBook.copy(), selfId, true,
 				Executors.newFixedThreadPool(
 						Math.max(1, Runtime.getRuntime().availableProcessors() * Settings.eventIntakeThreadMultiplier),
 						new PlatformThreadFactory("event_intake_")));
-
-		this.sgm = new SyncShadowGraphManager(this.hashgraph);
 
 		this.fontSize = fontSize;
 		this.numLines = numLines;
@@ -458,7 +459,6 @@ public class SwirldsPlatform extends AbstractPlatform {
 							log.error(STARTUP.getMarker(),
 									"ERROR: Signed state loaded from disk has an invalid hash!\ndisk:{}\ncalc:{}",
 									oldHash, newHash);
-							//throw new Exception("Signed state loaded from disk has an invalid hash!");
 						}
 					}
 
@@ -474,8 +474,6 @@ public class SwirldsPlatform extends AbstractPlatform {
 
 					signedStateManager.addCompleteSignedState(signedState, true);
 
-					// we currently do not use the saved address book
-					// initialAddressBook = signedState.getAddressBook();
 					hashgraph.loadFromSignedState(signedState);
 
 					loadedSavedState = true;
@@ -722,7 +720,7 @@ public class SwirldsPlatform extends AbstractPlatform {
 			// otherwise the first event stream file generated might not match original event stream file
 			runningHashCalculator.setStartWriteAtCompleteWindow(true);
 		}
-		// start thread for calculating RunningHash of consensus events;
+		// start thread for calculating RunningHash of consensus events
 		Address address = hashgraph.getAddressBook().getAddress(selfId.getId());
 
 		if (Settings.enableEventStreaming) {
@@ -1174,7 +1172,7 @@ public class SwirldsPlatform extends AbstractPlatform {
 				winRect, fontSize, false);
 		console.getWindow()
 				.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		// console.window.addWindowListener(stopper());
+
 		SwirldMenu.addTo(this, console.getWindow(), 40, Color.white, false);
 		console.setVisible(true);
 		return console;

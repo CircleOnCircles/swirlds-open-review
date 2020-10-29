@@ -17,7 +17,6 @@ package com.swirlds.common.merkle.io;
 import com.swirlds.common.merkle.MerkleInternal;
 import com.swirlds.common.merkle.MerkleNode;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 

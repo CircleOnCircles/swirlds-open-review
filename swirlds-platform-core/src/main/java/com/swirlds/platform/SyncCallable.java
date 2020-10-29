@@ -51,7 +51,6 @@ abstract class SyncCallable implements Callable<Object> {
 		oldName = Thread.currentThread().getName();
 		// the runName will start with "<tp " to show it's part of the thread pool
 		Thread.currentThread().setName(runName);
-		// Thread.currentThread().setName("exPool " + runName);
 		Object ret;
 		try {
 			ret = syncCall();

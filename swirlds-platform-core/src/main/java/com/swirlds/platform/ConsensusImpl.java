@@ -32,11 +32,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,10 +45,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 
-import static com.swirlds.logging.LogMarker.ADD_EVENT;
 import static com.swirlds.logging.LogMarker.EXCEPTION;
 import static com.swirlds.logging.LogMarker.INVALID_EVENT_ERROR;
-import static com.swirlds.logging.LogMarker.STARTUP;
+import static com.swirlds.logging.LogMarker.SYNC_SGM;
 
 /**
  * All the code for calculating the consensus for events in a hashgraph. This calculates
@@ -78,13 +75,6 @@ public class ConsensusImpl implements Consensus {
 
 	/** a method that accepts minimum generation info */
 	private final BiConsumer<Long, Long> minGenConsumer;
-
-	/**
-	 * the triple hash list for each round. In this class, it's only used in the getter. Deleted when round
-	 * discarded
-	 */
-	private final Map<Long, List<List<Hash>>> hashLists = new HashMap<>(); //null means none are known
-
 
 	// -----------------------------------------------------------------------------------------------------------------
 
@@ -159,6 +149,9 @@ public class ConsensusImpl implements Consensus {
 	/** the number of coin rounds that have happened so far (used to update the statistics) */
 	private long numCoinRounds = 0;
 
+	/** A data-lean event graph with augmented edge records, used during gossiping */
+	private final SyncShadowGraphManager sgm;
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Public constructors
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +169,8 @@ public class ConsensusImpl implements Consensus {
 	 * 		the global address book, which never changes
 	 */
 	public ConsensusImpl(Supplier<ConsensusStats> statsSupplier, BiConsumer<Long, Long> minGenConsumer,
-			NodeId selfId, AddressBook addressBook) {
+			NodeId selfId, AddressBook addressBook, SyncShadowGraphManager sgm) {
+		this.sgm = sgm;
 		this.statsSupplier = statsSupplier;
 		this.minGenConsumer = minGenConsumer;
 
@@ -189,7 +183,6 @@ public class ConsensusImpl implements Consensus {
 		this.rounds = new ConcurrentHashMap<>();
 
 		this.lastConsEventByMember = new AtomicReferenceArray<>(addressBook.getSize());
-		//prevRoundSetAddressBook = ;
 	}
 
 	/**
@@ -208,8 +201,8 @@ public class ConsensusImpl implements Consensus {
 	 * 		a state to read from
 	 */
 	public ConsensusImpl(Supplier<ConsensusStats> statsSupplier, BiConsumer<Long, Long> minGenConsumer,
-			NodeId selfId, AddressBook addressBook, SignedState signedState) {
-		this(statsSupplier, minGenConsumer, selfId, addressBook);
+			NodeId selfId, AddressBook addressBook, SignedState signedState, SyncShadowGraphManager sgm) {
+		this(statsSupplier, minGenConsumer, selfId, addressBook, sgm);
 
 		EventImpl[] events = signedState.getEvents();
 		// the first part of the array of events will be old events, they are kept so that we can know what the last
@@ -218,6 +211,16 @@ public class ConsensusImpl implements Consensus {
 		long roundNew = getLowestFromHighestSequence(events, EventImpl::getRoundCreated);
 
 		for (EventImpl event : events) {
+			// (Shadow Graph Manager may be null for testing.)
+			if (this.sgm != null) {
+				log.debug(SYNC_SGM.getMarker(),
+						"{}      `ConsensusImpl ctor`: adding event {} created by node {} to shadow graph",
+						() -> selfId,
+						() -> EventUtils.briefBaseHash(event),
+						() -> EventUtils.creator(event));
+				this.sgm.addEvent(event);
+			}
+
 			// this event is loaded from saved state, it should have reached consensus;
 			// when an EventImpl is read from saved state, its InternalEventData is empty,
 			// we set its `isConsensus` to be true here,
@@ -320,6 +323,23 @@ public class ConsensusImpl implements Consensus {
 	}
 
 	@Override
+	public synchronized long getMinRoundNonExpired() {
+		return getLastRoundDecided() - Settings.state.roundsExpired;
+	}
+
+	@Override
+	public synchronized long getMinGenerationNonExpired() {
+		long minRoundNotExpired = getLastRoundDecided() - Settings.state.roundsExpired;
+		long minGenNotExpired = -1;
+		RoundInfo expRound = rounds.get(minRoundNotExpired);
+		if (expRound != null) {
+			minGenNotExpired = expRound.minGeneration;
+		}
+
+		return minGenNotExpired;
+	}
+
+	@Override
 	public synchronized EventImpl[] getAllEvents() {
 		ArrayList<EventImpl> all = new ArrayList<>();
 		for (long r = minRound.get(); r <= maxRound.get(); r++) {
@@ -338,8 +358,10 @@ public class ConsensusImpl implements Consensus {
 		int count = 0;
 		for (long r = minRound.get(); r <= maxRound.get(); r++) {
 			RoundInfo info = rounds.get(r); // each element of rounds has its own lock
-			if (info != null)
+
+			if (info != null) {
 				count += info.allEvents.size(); // allEvents has its own lock
+			}
 		}
 		return count;
 	}
@@ -348,33 +370,40 @@ public class ConsensusImpl implements Consensus {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public synchronized EventImpl[] getRecentEvents(long minGenerationNumber) {
+	public synchronized EventImpl[] getRecentEvents(final long minGenerationNumber) {
 		ArrayList<EventImpl> recentEvents = new ArrayList<>();
 
-		for(long r = maxRound.get(); r >= minRound.get(); --r) {
+		for (long r = maxRound.get(); r >= minRound.get(); --r) {
 			RoundInfo info = rounds.get(r); // each element of rounds has its own lock
-			if(info == null)
+
+			if (info == null) {
 				// Round has been deleted because expired, so all older rounds are
 				// also deleted-as-expired.
 				break;
+			}
 
-			for(EventImpl e : info.allEvents)
-				if(e.getGeneration() >= minGenerationNumber)
+			for (EventImpl e : info.allEvents) {
+				if (e.getGeneration() >= minGenerationNumber) {
 					recentEvents.add(e);
+				}
+			}
 		}
 
 		return recentEvents.toArray(new EventImpl[0]);
 	}
 
 	@Override
-	public synchronized EventImpl getEvent(CreatorSeqPair pair) {
-		EventImpl event = eventsByCreatorSeq.get(pair);
+	public synchronized EventImpl getEvent(final CreatorSeqPair pair) {
+		final EventImpl event = eventsByCreatorSeq.get(pair);
+
 		if (event == null) {
-			EventImpl lastEvent = lastConsEventByMember.get((int) pair.getCreatorId());
+			final EventImpl lastEvent = lastConsEventByMember.get((int) pair.getCreatorId());
+
 			if (lastEvent != null && lastEvent.getSeq() == pair.getSeq()) {
 				return lastConsEventByMember.get((int) pair.getCreatorId());
 			}
 		}
+
 		return event;
 	}
 
@@ -384,11 +413,6 @@ public class ConsensusImpl implements Consensus {
 	@Override
 	public synchronized Queue<EventImpl> getStaleEventQueue() {
 		return staleNotConsensusEvents;
-	}
-
-	@Override
-	public synchronized List<List<Hash>> getWitnessHashes(final long round) {
-		return hashLists.get(round);
 	}
 
 	//find the minimum number n such that the given array has at at least one element returning each
@@ -433,7 +457,7 @@ public class ConsensusImpl implements Consensus {
 	 * called.
 	 * If not, then an exception is thrown.
 	 *
-	 * <p>It is possible that when this is called, some existing unfrozen events will have their roundCreated
+	 * <p>It is possible that when this is called, some existing events will have their roundCreated
 	 * recalculated,
 	 * which causes the voting to change, which causes new witnesses to be decided, which causes a round to be decided
 	 * that had not been decided before. In that case, this method call will trigger events to reach consensus. The
@@ -477,8 +501,6 @@ public class ConsensusImpl implements Consensus {
 	 */
 	@Override
 	public synchronized List<EventImpl> addEvent(EventImpl event, AddressBook addressBook) {
-		// all events that reached consensus because of a single addEvent call, in consensus order
-		//List<EventImpl> newConsensusEvents = new LinkedList<>();
 		addToEventsByCreator(event);
 
 		// fill in any event.* that can be calculated by looking only at self and parents
@@ -494,7 +516,7 @@ public class ConsensusImpl implements Consensus {
 
 		//evaluate this once, to trigger the precalculation and memoization.
 		//This makes it act like dynamic programming, and avoids problems with the recursion going too deep for Java
-		stronglySeeP(event,event.getCreatorId());
+		stronglySeeP(event, event.getCreatorId());
 
 		// check if it's a witness. If so, vote in all elections in the current round, put new consensus events in nce
 		final List<EventImpl> newConsensusEvents = vote(event, roundInfo, stronglySeen);
@@ -805,9 +827,8 @@ public class ConsensusImpl implements Consensus {
 	 * discovered in the future will be guaranteed to not be famous.
 	 *
 	 * Since fame for this round is now decided, it is now possible to decide consensus and time stamps for
-	 * events in earlier rounds. If an event is an ancestor of a famous witness, its isFrozen becomes true.
-	 * If it's an ancestor of all the famous witnesses, then it reaches consensus. If its isFrozen is still
-	 * false, then it may have its roundCreated changed as a result of address book changes due to the effects
+	 * events in earlier rounds. If an event is an ancestor  of all the famous witnesses, then it reaches
+	 * consensus. It may have its roundCreated changed as a result of address book changes due to the effects
 	 * of the new consensus events being handled.
 	 *
 	 * @param roundInfo
@@ -856,8 +877,7 @@ public class ConsensusImpl implements Consensus {
 	/**
 	 * Find all events that are ancestors of the judges in round roundInfo.round and update them. A
 	 * non-consensus event that is an ancestor of all of them should be marked as consensus, and have its consensus
-	 * roundReceived  and timestamp set. An event that is an ancestor of at least one should be marked as frozen (so
-	 * its roundCreated won't change when the address book changes). Events with very old generations should be marked
+	 * roundReceived  and timestamp set. Events with very old generations should be marked
 	 * as stale or expired, as appropriate. Expired events can be deleted. This should not be called on any round
 	 * greater than R until after it has been called on round R.
 	 *
@@ -979,7 +999,6 @@ public class ConsensusImpl implements Consensus {
 				}
 			}
 		}
-		hashLists.put(round, hashes);
 
 		// "consensus" now has all events in history with receivedRound==round
 		// there will never be any more events with receivedRound<=round (not even if the address book changes)
@@ -992,8 +1011,10 @@ public class ConsensusImpl implements Consensus {
 			//sort by consensus timestamp
 			c = (e1.getConsensusTimestamp()
 					.compareTo(e2.getConsensusTimestamp()));
-			if (c != 0)
+
+			if (c != 0) {
 				return c;
+			}
 
 			//subsort ties by extended median timestamp
 			ArrayList<Instant> recTimes1 = e1.getRecTimes();
@@ -1004,15 +1025,20 @@ public class ConsensusImpl implements Consensus {
 			int m1 = size1 / 2; //middle position of e1 (the later of the two middles, if even length)
 			int m2 = size2 / 2; //middle position of e2 (the later of the two middles, if even length)
 			int d = -1; //offset from median position to look at
+
 			while (m1 + d >= 0
 					&& m2 + d >= 0
 					&& m1 + d < size1
 					&& m2 + d < size2) {
 				c = recTimes1.get(m1 + d).compareTo(recTimes2.get(m2 + d));
-				if (c != 0)
+
+				if (c != 0) {
 					return c;
+				}
+
 				d = d < 0 ? -d : -d - 1; //use the median position plus -1, 1, -2, 2, -3, 3, ...
 			}
+
 			if (size1 > size2) {
 				return 1; //this should never happen. They should be the same length.
 			}
@@ -1022,8 +1048,10 @@ public class ConsensusImpl implements Consensus {
 
 			//subsort ties by generation
 			c = Long.compare(e1.getGeneration(), e2.getGeneration());
-			if (c != 0)
+
+			if (c != 0) {
 				return c;
+			}
 
 			//subsort ties by whitened signature
 			return Utilities.arrayCompare(e1.getSignature(), e2.getSignature(),
@@ -1040,11 +1068,41 @@ public class ConsensusImpl implements Consensus {
 			lastConsEventByMember.set((int) e.getCreatorId(), e);
 			newConsensusEvents.add(e);
 		}
+
 		for (EventImpl e : visited) {
-			e.setFrozen(true); //never recalculate roundCreated again for an event that was an ancestor of a judge
 			e.setRecTimes(null); //reclaim the memory for the list of received times
 		}
 	}
+
+	/**
+	 * Return the hashes of the judges in the given round. Returns null if the round is unknown, or if the complete
+	 * set of judges for that round is not yet decided. The caller must not modify any hash in the list, but it is ok
+	 * to modify the list itself.
+	 *
+	 * @param round
+	 * 		the round number to get (each judge has this as its roundCreated)
+	 * @return the Hash of each judge in that round
+	 */
+	public synchronized List<Hash> getJudgeHashes(long round) {
+		RoundInfo roundInfo = rounds.get(round);
+		List<Hash> judgeHashes;
+
+		if (roundInfo == null || !roundInfo.fameDecided || roundInfo.judges == null) {
+			return null;
+		}
+
+		judgeHashes = new ArrayList<>();
+
+		for (EventImpl event : roundInfo.judges) {
+			if (event != null) {
+				judgeHashes.add(event.getHash());
+			}
+		}
+
+		judgeHashes.sort(Hash::compareTo);
+		return judgeHashes;
+	}
+
 
 	/**
 	 * Delete the oldest rounds with round number roundToDelete or earlier (and clear the references in
@@ -1065,6 +1123,7 @@ public class ConsensusImpl implements Consensus {
 		roundLoop:
 		for (long r = minRound.get(); r < minRoundNotExpired; r++) {
 			RoundInfo info = rounds.get(r);
+
 			if (info != null) {
 				// we should not delete any round that has an event with a generation >= minGenNotExpired
 				// and we should not delete any rounds after that (so there aren't any gaps)
@@ -1077,7 +1136,6 @@ public class ConsensusImpl implements Consensus {
 				// at this point, every event in the round is expired, every witness has fame decided, no
 				// elections exist, so this round can be removed
 				rounds.remove(r);
-				hashLists.remove(r);
 				for (EventImpl e : info.allEvents) {
 					if (!e.isConsensus() && !e.isStale()) {
 						staleEvent(e); //this should be incredibly rare: expiring before being marked stale
@@ -1100,6 +1158,7 @@ public class ConsensusImpl implements Consensus {
 			}
 			minRound.set(r + 1);
 		}
+
 		// events were added to the toBeCleared array because they were the last event by a member. If this is no
 		// longer the case, we can clear this event
 		Iterator<EventImpl> it = toBeCleared.iterator();
@@ -1161,6 +1220,7 @@ public class ConsensusImpl implements Consensus {
 			}
 			minTimestamp = e.getLastTransTime().plusNanos(1);
 		}
+
 		if (last != null) {
 			last.setLastInRoundReceived(true);
 		}
@@ -1201,6 +1261,7 @@ public class ConsensusImpl implements Consensus {
 		if (lastCons == null) {
 			return false;
 		}
+
 		return lastCons.getCreatorSeq() == e.getCreatorSeq();
 	}
 
@@ -1226,14 +1287,17 @@ public class ConsensusImpl implements Consensus {
 		if (x == null) {
 			return 0;
 		}
+
 		sp = x.getSelfParent();
 		if (sp != null) {
 			round = round(sp);
 		}
+
 		op = x.getOtherParent();
 		if (x.getOtherParent() != null) {
 			round = Math.max(round, round(op));
 		}
+
 		return round;
 	}
 
@@ -1304,9 +1368,11 @@ public class ConsensusImpl implements Consensus {
 		if (x == null) {
 			return null;
 		}
+
 		if (m == m2 && m2 == x.getCreatorId()) {
 			return firstSelfWitnessS(x.getSelfParent());
 		}
+
 		return firstSee(lastSee(x, m2), m);
 	}
 
@@ -1371,6 +1437,7 @@ public class ConsensusImpl implements Consensus {
 			}
 			result = x.getStronglySeeP((int) m);
 		}
+
 		t = System.nanoTime() - t; // nanoseconds spent doing the dot product
 		statsSupplier.get().dotProductTime(t);
 		return result;
@@ -1399,6 +1466,7 @@ public class ConsensusImpl implements Consensus {
 		if (x == null) {
 			return 0;
 		}
+
 		if (x.getRoundCreated() > 0) {
 			return x.getRoundCreated();
 		}
@@ -1459,9 +1527,11 @@ public class ConsensusImpl implements Consensus {
 		if (x == null) {
 			return null;
 		}
+
 		if (x.getFirstSelfWitnessS() != null) { //if already found and memoized, return it
 			return x.getFirstSelfWitnessS();
 		}
+
 		//calculate, memoize, and return the result
 		if (round(
 				x) > round(x.getSelfParent())) {
@@ -1469,6 +1539,7 @@ public class ConsensusImpl implements Consensus {
 		} else {
 			x.setFirstSelfWitnessS(firstSelfWitnessS(x.getSelfParent()));
 		}
+
 		return x.getFirstSelfWitnessS();
 	}
 
@@ -1484,9 +1555,11 @@ public class ConsensusImpl implements Consensus {
 		if (x == null) {
 			return null;
 		}
+
 		if (x.getFirstWitnessS() != null) { //if already found and memoized, return it
 			return x.getFirstWitnessS();
 		}
+
 		//calculate, memoize, and return the result
 		if (round(x) > parentRound(x)) {
 			x.setFirstWitnessS(x);
@@ -1495,6 +1568,7 @@ public class ConsensusImpl implements Consensus {
 		} else {
 			x.setFirstWitnessS(firstWitnessS(x.getOtherParent()));
 		}
+
 		return x.getFirstWitnessS();
 	}
 

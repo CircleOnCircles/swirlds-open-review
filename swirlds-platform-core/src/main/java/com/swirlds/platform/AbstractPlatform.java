@@ -22,7 +22,6 @@ import com.swirlds.common.Platform;
 import com.swirlds.common.SwirldMain;
 import com.swirlds.common.Transaction;
 import com.swirlds.common.crypto.Cryptography;
-import com.swirlds.common.events.Event;
 import com.swirlds.platform.internal.SignedStateLoadingException;
 import com.swirlds.platform.state.SignedStateManager;
 
@@ -139,7 +138,6 @@ public abstract class AbstractPlatform implements Platform {
 
 	/**
 	 * Get the round number of the last event recovered from event stream file
-	 *
 	 */
 	public abstract long getRoundOfLastRecoveredEvent();
 

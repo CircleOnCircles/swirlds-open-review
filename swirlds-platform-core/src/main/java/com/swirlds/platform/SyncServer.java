@@ -323,7 +323,7 @@ class SyncServer implements Runnable {
 
 				otherId = platform.getHashgraph().getAddressBook().getId(otherKey);
 
-				dos.writeInt(SyncConstants.commConnect);// send an ACK for creating connection
+				dos.writeInt(SyncConstants.COMM_CONNECT);// send an ACK for creating connection
 				dos.flush();
 
 				// ignore invalid IDs, but store the streams for valid ones

@@ -64,49 +64,11 @@ public class PipelineErrorHandler {
 
 		Object[] finalContext = context;
 
-//		if (context != null && context.length > 1) {
-//			if (DbErrorContext.SOURCE_PATH.equals(dbErrorContext)) {
-//				finalContext = new Object[] { context[0] };
-//			} else if (DbErrorContext.DEST_PATH.equals(dbErrorContext)) {
-//				finalContext = new Object[] { context[1] };
-//			}
-//		}
-
 		if (DbErrorCode.NOT_FOUND.equals(dbErrorCode) && DbErrorContext.IDENTIFIER.equals(dbErrorContext)) {
 			throw new BinaryObjectNotFoundException(
 					String.format("BinaryObject: Object Not Found [ context = %s, code = %s, sources = %s ]",
 							dbErrorContext, dbErrorCode, Arrays.toString(dbErrorSources)), priorException);
 		}
-
-//		if (DbErrorCode.NOT_FOUND.equals(dbErrorCode)) {
-//			if (DbErrorContext.PATH.equals(dbErrorContext) ||
-//					DbErrorContext.SOURCE_PATH.equals(dbErrorContext) ||
-//					DbErrorContext.DEST_PATH.equals(dbErrorContext)) {
-//
-//				throw new PathNotFoundException(
-//						String.format("FCFileSystem: Path not found [ context = %s, code = %s, sources = %s ]",
-//								Arrays.toString(finalContext), dbErrorCode,
-//								Arrays.toString(dbErrorSources)), priorException);
-//			} else {
-//				throw new FileSystemException(
-//						String.format("FCFileSystem: Resource not found [ context = %s, code = %s, sources = %s ]",
-//								dbErrorContext, dbErrorCode, Arrays.toString(dbErrorSources)), priorException);
-//			}
-//		} else if (DbErrorCode.ALREADY_EXISTS.equals(dbErrorCode)) {
-//			if (DbErrorContext.PATH.equals(dbErrorContext) ||
-//					DbErrorContext.SOURCE_PATH.equals(dbErrorContext) ||
-//					DbErrorContext.DEST_PATH.equals(dbErrorContext)) {
-//
-//				throw new EntityAlreadyExistsException(
-//						String.format("FCFileSystem: Path already exists [ context = %s, code = %s, sources = %s ]",
-//								Arrays.toString(finalContext), dbErrorCode,
-//								Arrays.toString(dbErrorSources)), priorException);
-//			} else {
-//				throw new FileSystemException(
-//						String.format("FCFileSystem: Resource already exists[ context = %s, code = %s, sources = %s ]",
-//								dbErrorContext, dbErrorCode, Arrays.toString(dbErrorSources)), priorException);
-//			}
-//		}
 
 		throw new BinaryObjectException(
 				String.format("BinaryObject: Error during operation [ context = %s, code = %s, sources = %s ]",

@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.swirlds.blob.internal.Utilities.hex;
 import static com.swirlds.logging.LogMarker.EVENT_PARSER;
 import static com.swirlds.logging.LogMarker.EVENT_STREAM;
 import static com.swirlds.logging.LogMarker.EXCEPTION;
@@ -284,7 +283,9 @@ public class StreamUtilities {
 			byte[] otherParentHash = dis.readByteArray(DigestType.getMaxLength(), true);
 
 			Transaction[] transactions = new Transaction[0];
-			if (!transactionStripped) transactions = Transaction.readArray(dis, byteCount);
+			if (!transactionStripped) {
+				transactions = Transaction.readArray(dis, byteCount);
+			}
 
 			Instant timeCreated = SyncUtils.readInstant(dis, byteCount);
 			byte[] signature = SyncUtils.readByteArray(dis, byteCount, SignatureType.getMaxLength());

@@ -121,6 +121,7 @@ public class NodeId {
 
 	/**
 	 * Check if ID is part of mirror network
+	 *
 	 * @return true if this ID is part of the mirror network, false if not
 	 */
 	public boolean isMirror() {
@@ -129,6 +130,7 @@ public class NodeId {
 
 	/**
 	 * Check if ID is part of main network
+	 *
 	 * @return true if this ID is part of the main network, false if not
 	 */
 	public boolean isMain() {
@@ -137,6 +139,7 @@ public class NodeId {
 
 	/**
 	 * Check if numeric part of this ID
+	 *
 	 * @return the numeric part of this ID
 	 */
 	public long getId() {
@@ -145,6 +148,7 @@ public class NodeId {
 
 	/**
 	 * get numeric part of ID and cast to an Integer
+	 *
 	 * @return the numeric part of this ID, cast to an integer
 	 */
 	public int getIdAsInt() {

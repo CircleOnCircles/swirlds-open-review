@@ -21,7 +21,6 @@ import com.swirlds.common.events.ConsensusEvent;
 import com.swirlds.common.io.SelfSerializable;
 import com.swirlds.common.io.SerializableDataInputStream;
 import com.swirlds.common.stream.ObjectStreamUtilities;
-import com.swirlds.platform.event.EventUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -270,7 +269,6 @@ class StreamEventParser extends Thread {
 			}
 			// calculate Hash for this event
 			CryptoFactory.getInstance().digestSync(event.getBaseEventHashedData());
-			//log.info(EVENT_PARSER, "Hash: {}", () -> event.getHash());
 			event.setConsensus(true);
 			eventHandler.apply(event);
 		}
@@ -399,8 +397,8 @@ class StreamEventParser extends Thread {
 					"Search finished due to consensusTimestamp is after endTimestamp");
 			return false;
 			// if consensusTimestamp is before or equal to startTimestamp, we ignore such event, because this event
-			// should not play back in swirdsState;
-			// we cannot write this event to event stream, because we only have eventsRunningHash loaded from signed
+			// should not play back in swirdsState.
+			// We cannot write this event to event stream, because we only have eventsRunningHash loaded from signed
 			// state. we must start to update eventsRunningHash for events whose consensus timestamp is after the
 			// loaded signed state, and then start to write event stream file at the first complete window
 		}

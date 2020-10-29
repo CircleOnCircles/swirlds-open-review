@@ -139,8 +139,6 @@ class SwirldMenu extends JPanel {
 				backColor ? back : null);
 		removeFrom(window); // get rid of the old one, if any exists
 		JLayeredPane layeredPane = window.getRootPane().getLayeredPane();
-		// layeredPane.add(logo,layeredPane.highestLayer());
-		// layeredPane.add(logo, JLayeredPane.DEFAULT_LAYER);
 		layeredPane.add(logo, JLayeredPane.MODAL_LAYER);
 		layeredPane.moveToFront(logo);
 		logo.setVisible(true);
@@ -405,9 +403,6 @@ class SwirldMenu extends JPanel {
 
 		float xx = 0, yy = 0, w = 300, h = 300; // SVG had upper-left corner (xx,yy), size (w,h)
 		float scale = size / w; // 1.0 means 300x300, as encoded in the SVG
-		// int marginPixels = (int) (size / w * margin);
-		// Stroke stroke = null;
-		// Area clip = null;
 
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);

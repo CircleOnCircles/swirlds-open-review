@@ -118,6 +118,7 @@ public class ReconnectSettings implements com.swirlds.common.merkle.synchronizat
 
 	/**
 	 * {@inheritDoc}
+	 *
 	 * @return
 	 */
 	@Override

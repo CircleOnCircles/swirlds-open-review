@@ -125,7 +125,7 @@ public abstract class Browser {
 	/* the number of pixels between the edges of a window and interior region that can be used */
 	static Insets insets;
 	/** the thread for each Platform.run */
-	private static Thread platformRunThreads[];
+	private static Thread[] platformRunThreads;
 	/** metadata about all known apps, swirlds, members, signed states */
 	static StateHierarchy stateHierarchy = null;
 
@@ -251,8 +251,6 @@ public abstract class Browser {
 				context.setConfigLocation(Settings.logPath.toURI());
 			}
 		} catch (Exception e) {
-			// should log this, but the log can't exist at this point.
-			// e.printStackTrace();
 		}
 	}
 
@@ -1031,11 +1029,6 @@ public abstract class Browser {
 	 * Now you can use classes like com.apple.eawt.AppEvent, for MacOS-specific code.
 	 */
 	static void macOsSpecific() {
-		// if (System.getProperty("os.name").equals("Mac OS X")) {
-		// if (SystemUtils.IS_OS_MAC) {
-		// Application.getApplication()
-		// .setQuitStrategy(QuitStrategy.CLOSE_ALL_WINDOWS);
-		// }
 	}
 
 	/**

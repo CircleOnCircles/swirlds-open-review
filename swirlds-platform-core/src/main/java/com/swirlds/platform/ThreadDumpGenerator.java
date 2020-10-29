@@ -361,10 +361,10 @@ class ThreadDumpGenerator {
 						+ LoggingReentrantLock.getName(idToLockInfo.get(lock))
 						+ "\n";
 				Set<Long> threads = lockToBlockedThreads.get(lock);
-				// result += "-#-";
+
 				if (threads != null) {
 					for (long thread : threads) {
-						// result += "-?-";
+
 						result += lockGraph(
 								firstIndent + levelIndent + levelIndent,
 								levelIndent, thread, stop, idToThreadInfo,

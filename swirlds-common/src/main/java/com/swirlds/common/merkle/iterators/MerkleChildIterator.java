@@ -19,7 +19,6 @@ import com.swirlds.common.merkle.MerkleNode;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Stack;
 
 /**
  * This iterator walks over the direct children of a MerkleNode from left to right.

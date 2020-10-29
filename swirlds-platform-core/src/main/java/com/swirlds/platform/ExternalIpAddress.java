@@ -23,7 +23,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class ExternalIpAddress {
 
 	public static final ExternalIpAddress NO_IP = new ExternalIpAddress(IpAddressStatus.NO_IP_FOUND, "");
-	public static final ExternalIpAddress UPNP_DISABLED = new ExternalIpAddress(IpAddressStatus.ROUTER_UPNP_DISABLED, "");
+	public static final ExternalIpAddress UPNP_DISABLED = new ExternalIpAddress(IpAddressStatus.ROUTER_UPNP_DISABLED,
+			"");
 	private final IpAddressStatus status;
 	private final String ipAddress;
 
@@ -43,6 +44,7 @@ public class ExternalIpAddress {
 	/**
 	 * If External IP address is found, then the address will be returned
 	 * in ipv4 or ipv6 format. Otherwise, an empty string
+	 *
 	 * @return External ip address or blank
 	 */
 	public String getIpAddress() {

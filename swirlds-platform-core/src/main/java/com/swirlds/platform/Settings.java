@@ -588,7 +588,7 @@ class Settings {
 		String subName = null;
 		if (name.contains(".")) {
 			// if the name contains a dot (.), then we need to set a variable that is inside an object
-			String split[] = name.split("\\.");
+			String[] split = name.split("\\.");
 			name = split[0];
 			subName = split[1];
 		}

@@ -56,6 +56,7 @@ public class AsyncOutputStream {
 
 	/**
 	 * Flush the stream if necessary.
+	 *
 	 * @return true if the stream was flushed.
 	 */
 	private void flushIfRequired() {
@@ -79,6 +80,7 @@ public class AsyncOutputStream {
 
 	/**
 	 * Send the next message if possible.
+	 *
 	 * @return true if a message was sent.
 	 */
 	protected boolean handleNextMessage() {

@@ -137,7 +137,6 @@ public class TimestampStreamFileWriter<T extends Timestamped & SerializableHasha
 		this.startWriteAtCompleteWindow = startWriteAtCompleteWindow;
 		forStream = new ArrayBlockingQueue<>(eventStreamQueueCapacity);
 		writeThread = new Thread(this::work);
-		//writeThread.setDaemon(true);
 		writeThread.start();
 	}
 

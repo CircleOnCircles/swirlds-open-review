@@ -78,11 +78,6 @@ public class SignedState extends AbstractMerkleInternal implements FastCopyable<
 	/** the signatures collected so far (including from self) */
 	private SigSet sigSet;
 
-	// /** the hash of the SwirldsState of SwirldState2 object being saved */
-	// private byte[] swirldStateHash = null;
-	// /** the hash of the AddressBook being saved */
-	// private byte[] addressBookHash = null;
-
 	/** specifies whether this state should be saved to disk */
 	private boolean shouldSaveToDisk;
 
@@ -637,9 +632,13 @@ public class SignedState extends AbstractMerkleInternal implements FastCopyable<
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
 
-		if (o == null || getClass() != o.getClass()) return false;
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		SignedState that = (SignedState) o;
 

@@ -15,7 +15,9 @@
 package com.swirlds.platform;
 
 import com.swirlds.common.AddressBook;
-import com.swirlds.common.events.Event;
+import com.swirlds.common.crypto.Hash;
+
+import java.util.List;
 
 abstract class AbstractHashgraph {
 
@@ -101,8 +103,33 @@ abstract class AbstractHashgraph {
 	abstract int getNumEvents();
 
 	/**
-	 *
+	 * @return the minimum generation that is not ancient. All events with generations less than this are either ancient
+	 * 		or expired.
 	 */
 	abstract long getMinGenerationNonAncient();
 
+	/**
+	 * Return the minimum generation of all the famous witnesses that are not in expired rounds.
+	 *
+	 * @return the minimum (oldest, least recent) generation which is not yet expired
+	 */
+	abstract long getMinGenerationNonExpired();
+
+	/**
+	 * Return the minimum round number from rounds that have not yet expired.
+	 *
+	 * @return the minimum (oldest, least recent) round which is not yet expired
+	 */
+	abstract long getMinRoundNonExpired();
+
+	/**
+	 * Return the hashes of the judges in the given round. Returns null if the round is unknown, or if the complete
+	 * set of judges for that round is not yet decided (i.e., the round doesn't yet have consensus). The caller must not
+	 * modify any hash in the list, but it is ok to modify the list itself.
+	 *
+	 * @param round
+	 * 		the round number to get (each judge has this as its roundCreated)
+	 * @return the Hash of each judge in that round
+	 */
+	abstract List<Hash> getJudgeHashes(long round);
 }

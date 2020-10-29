@@ -43,7 +43,7 @@ public abstract class EventIntakeTask {
 	/**
 	 * Gets the validity of the event.
 	 * <p>requester is no longer used due to the change to move validation to single threaded model and need not
-	 *  wait to get validity of event. This will be re-evaluated in the future</p>
+	 * wait to get validity of event. This will be re-evaluated in the future</p>
 	 *
 	 * @param requester
 	 * 		the EventInfo that depends on this valid check

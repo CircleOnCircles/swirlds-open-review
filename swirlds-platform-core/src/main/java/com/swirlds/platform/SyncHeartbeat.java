@@ -112,19 +112,18 @@ class SyncHeartbeat implements Runnable {
 					"locked platform[{}].syncServer.lockCallHeartbeat[{}]",
 					platform.getSelfId(), otherId);
 			log.debug(HEARTBEAT.getMarker(), "about to send heartbeat");
-			// conn.disconnect(otherId, true, 3);
 
 			long startTime = System.nanoTime();
-			dos.write((int) SyncConstants.heartbeat);
+			dos.write((int) SyncConstants.HEARTBEAT);
 			dos.flush();
 			conn.getSocket().setSoTimeout(Settings.timeoutSyncClientSocket);
 			byte b = dis.readByte();
 			platform.getStats().avgPingMilliseconds[otherId.getIdAsInt()].recordValue(
 					(System.nanoTime() - startTime) / 1_000_000.0);
-			if (b != SyncConstants.heartbeatAck) {
+			if (b != SyncConstants.HEARTBEAT_ACK) {
 				log.error(HEARTBEAT.getMarker(),
 						"received {} but expected {} (heartbeatACK)", b,
-						SyncConstants.heartbeatAck);
+						SyncConstants.HEARTBEAT_ACK);
 				conn.disconnect(true, 12);
 				platform.getSyncClient().getCallerConnOrConnectOnce(otherId); // try once to reconnect
 			}

@@ -18,4 +18,5 @@ module com.swirlds.fcqueue {
 	requires com.swirlds.platform;
 
 	requires org.apache.logging.log4j;
+	requires org.apache.commons.lang3;
 }

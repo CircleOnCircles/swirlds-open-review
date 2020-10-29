@@ -16,10 +16,9 @@ package com.swirlds.fcmap.internal;
 
 import com.swirlds.common.FCMKey;
 import com.swirlds.common.FCMValue;
-import com.swirlds.fcmap.FCMap;
-import com.swirlds.common.io.SerializedObjectProvider;
 import com.swirlds.common.io.SerializableDataInputStream;
-import com.swirlds.common.io.SerializableDataOutputStream;
+import com.swirlds.common.io.SerializedObjectProvider;
+import com.swirlds.fcmap.FCMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -27,13 +26,12 @@ import org.apache.logging.log4j.MarkerManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * @deprecated Use Merkle utilities to serialize Merkle Nodes
  * @param <K>
  * @param <V>
+ * @deprecated Use Merkle utilities to serialize Merkle Nodes
  */
 @Deprecated
 public class FCSerializer<K extends FCMKey, V extends FCMValue> {
@@ -77,7 +75,7 @@ public class FCSerializer<K extends FCMKey, V extends FCMValue> {
 			final SerializableDataInputStream inputStream) throws IOException {
 		final long numberOfLeaves = inputStream.readLong();
 		final List<FCMLeaf<K, V>> leaves = new ArrayList<>((int) numberOfLeaves);
-		LOG.trace(SERIALIZATION, "Deserializing {} leaves", ()->numberOfLeaves);
+		LOG.trace(SERIALIZATION, "Deserializing {} leaves", () -> numberOfLeaves);
 		for (int leafIndex = 0; leafIndex < numberOfLeaves; leafIndex++) {
 			final int keyS = inputStream.readInt();
 			if (keyS != KEY_S) {

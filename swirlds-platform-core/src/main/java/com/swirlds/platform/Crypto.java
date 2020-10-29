@@ -11,7 +11,7 @@
  * INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
  * OR NON-INFRINGEMENT.
  */
-	package com.swirlds.platform;
+package com.swirlds.platform;
 
 import com.swirlds.common.CommonUtils;
 import com.swirlds.common.crypto.internal.CryptographySettings;
@@ -23,7 +23,6 @@ import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
@@ -142,11 +141,9 @@ public class Crypto extends CryptoUtils {
 	// the algorithms and providers to use (AGR is key agreement, ENC is encryption, SIG is signatures)
 	final static String AGR_TYPE = "EC";
 	final static String AGR_PROVIDER = "SunEC";
-	// final static ObjectIdentifier AGR_ALG_ID = AlgorithmId.sha384WithECDSA_oid;
 
 	final static String ENC_TYPE = "EC";
 	final static String ENC_PROVIDER = "SunEC";
-	// final static ObjectIdentifier ENC_ALG_ID = AlgorithmId.sha384WithECDSA_oid;
 
 	final static String SIG_TYPE1 = Settings.useRSA  //
 			? "RSA" // or RSA or SHA384withRSA

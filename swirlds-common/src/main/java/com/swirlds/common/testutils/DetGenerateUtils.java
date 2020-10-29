@@ -37,19 +37,6 @@ public abstract class DetGenerateUtils {
 	private static final int DEFAULT_SIGNATURE_SIZE = 384;
 	private static final int DEFAULT_ROUND_MAX_DIFF = 10;
 
-//	public static BaseEventHashedData generateBaseEventHashedData(Random random, long selfParentGeneration, long
-//	otherParentGeneration) {
-//		return new BaseEventHashedData(
-//				nextLong(random, 0), // creatorId, must be positive
-//				selfParentGeneration, // selfParentGen, must be positive
-//				otherParentGeneration, // otherParentGen, must be positive
-//				generateRandomHash(random, DEFAULT_HASH_TYPE), // selfParentHash
-//				generateRandomHash(random, DEFAULT_HASH_TYPE), // otherParentHash
-//				generateRandomInstant(random, DEFAULT_MAX_EPOCH), // timeCreated
-//				generateTransactions(DEFAULT_TRANSACTION_NUMBER, DEFAULT_TRANSACTION_MAX_SIZE, random)
-//						.toArray(new Transaction[0])); // transactions
-//	}
-
 	public static BaseEventHashedData generateBaseEventHashedData(Random random) {
 		return new BaseEventHashedData(
 				nextLong(random, 0), // creatorId, must be positive

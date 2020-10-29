@@ -137,14 +137,6 @@ public interface Platform extends Signer {
 	Event[] getAllEvents();
 
 	/**
-	 * Get the ApplicationStatistics object that has user-added statistics monitoring entries
-	 *
-	 * @return the ApplicationStatistics object associated with this platform
-	 * @see ApplicationStatistics
-	 */
-	//ApplicationStatistics getAppStats();
-
-	/**
 	 * Return the sequence numbers of the last event created by each member. This is a copy, so it is OK for
 	 * the caller to modify it.
 	 *

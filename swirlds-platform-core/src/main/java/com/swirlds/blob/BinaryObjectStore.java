@@ -211,11 +211,6 @@ public class BinaryObjectStore {
 					"BinaryObject: The startInit() method must be called before the recover() method.");
 		}
 
-//		if (hashRefCountMap.size() == 0) {
-////			//no work to do
-////			return;
-////		}
-
 		log.debug(LOGM_STARTUP, "Recovering Objects [ objectCount = {}, uniqueObjectCount = {} ]",
 				binaryObjectRecoveryList.size(), hashRefCountMap.size());
 

@@ -20,5 +20,5 @@ package com.swirlds.platform;
 public enum IpAddressStatus {
 	NO_IP_FOUND,
 	ROUTER_UPNP_DISABLED,
-	IP_FOUND;
+	IP_FOUND
 }

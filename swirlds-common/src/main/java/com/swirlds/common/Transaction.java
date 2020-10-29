@@ -36,7 +36,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * A hashgraph transaction that consists of an array of bytes and a list of immutable {@link TransactionSignature} objects. The
+ * A hashgraph transaction that consists of an array of bytes and a list of immutable {@link TransactionSignature}
+ * objects. The
  * contents of the transaction is completely immutable; however, the list of signatures features controlled mutability
  * with a thread-safe and atomic implementation. The transaction internally uses a {@link ReadWriteLock} to provide
  * atomic reads and writes to the underlying list of signatures.
@@ -498,7 +499,8 @@ public class Transaction implements Comparable<Transaction>, SelfSerializable {
 	}
 
 	/**
-	 * Returns a {@link List} of {@link TransactionSignature} objects associated with this transaction. This method returns a
+	 * Returns a {@link List} of {@link TransactionSignature} objects associated with this transaction. This method
+	 * returns a
 	 * shallow copy of the original list.
 	 *
 	 * This method is thread-safe and guaranteed to be atomic in nature.
@@ -601,7 +603,8 @@ public class Transaction implements Comparable<Transaction>, SelfSerializable {
 	 */
 	public void extractSignature(final int signatureOffset, final int signatureLength, final int publicKeyOffset,
 			final int publicKeyLength, final int messageOffset, final int messageLength) {
-		add(new TransactionSignature(contents, signatureOffset, signatureLength, publicKeyOffset, publicKeyLength, messageOffset,
+		add(new TransactionSignature(contents, signatureOffset, signatureLength, publicKeyOffset, publicKeyLength,
+				messageOffset,
 				messageLength));
 	}
 

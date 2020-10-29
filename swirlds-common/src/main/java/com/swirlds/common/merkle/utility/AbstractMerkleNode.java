@@ -100,7 +100,7 @@ abstract class AbstractMerkleNode extends AbstractHashable implements MerkleNode
 	protected void onRelease() {
 
 	}
-	
+
 //	/**
 //	 * {@inheritDoc}
 //	 */

@@ -42,7 +42,7 @@ public class SelfSerializableByteSnapshot<T extends SelfSerializable> {
 						MessageDigest.getInstance(DIGEST_TYPE.algorithmName()),
 						byteOut
 				);
-				SerializableDataOutputStream out = new SerializableDataOutputStream(hashOut);
+				SerializableDataOutputStream out = new SerializableDataOutputStream(hashOut)
 		) {
 			out.writeSerializable(ss, true);
 			return new SelfSerializableByteSnapshot<>(
@@ -55,7 +55,7 @@ public class SelfSerializableByteSnapshot<T extends SelfSerializable> {
 	}
 
 	public T deserialize() {
-		try (SerializableDataInputStream in = new SerializableDataInputStream(new ByteArrayInputStream(bytes));) {
+		try (SerializableDataInputStream in = new SerializableDataInputStream(new ByteArrayInputStream(bytes))) {
 			return in.readSerializable();
 		} catch (IOException e) {
 			throw new RuntimeException(e);

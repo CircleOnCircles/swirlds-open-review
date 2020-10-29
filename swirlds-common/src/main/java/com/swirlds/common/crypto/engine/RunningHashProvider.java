@@ -18,7 +18,6 @@ import com.swirlds.common.crypto.DigestType;
 import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.crypto.HashBuilder;
 import com.swirlds.common.crypto.Hashable;
-import com.swirlds.common.crypto.SerializableHashable;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

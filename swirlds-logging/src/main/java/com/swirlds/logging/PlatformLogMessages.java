@@ -46,5 +46,5 @@ public abstract class PlatformLogMessages {
 	public static final String SYNC_STALE_COMPENSATION_SUCCESS = "Compensating for stale events during gossip";
 	@Deprecated
 	public static final String SYNC_STALE_COMPENSATION_FAILURE = "Failed to compensate for stale events during gossip" +
-			 " due to delta exceeding threshold";
+			" due to delta exceeding threshold";
 }

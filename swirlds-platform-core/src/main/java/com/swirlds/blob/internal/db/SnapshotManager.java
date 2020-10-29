@@ -161,11 +161,6 @@ public abstract class SnapshotManager {
 		try {
 			while (running) {
 
-//				if (!taskQueue.isEmpty()) {
-//					log.trace(LOGM_SNAPSHOT_MANAGER, "SnapshotManager: Current Queue Depth [size = {}]",
-//							taskQueue.size());
-//				}
-
 				final SnapshotTask task = taskQueue.take();
 
 				final Map<String, String> tokens = compileTokens(task);

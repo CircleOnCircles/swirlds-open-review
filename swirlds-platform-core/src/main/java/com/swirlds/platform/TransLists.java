@@ -43,51 +43,6 @@ class TransLists {
 	/** use this for all logging, as controlled by the optional data/log4j2.xml file */
 	private static final Logger log = LogManager.getLogger();
 
-	/**
-	 * A single transaction, consisting of a sequence of bytes, and a boolean. All code (including the
-	 * caller) must treat this object as immutable, and not modify the contents of the array.
-	 */
-	// public class Transaction {
-	// public final byte[] trans;
-	// public final boolean sys;
-	//
-	// /**
-	// * Store trans and sys and don't let them change.
-	// *
-	// * @param trans
-	// * sequence of bytes defining the transaction
-	// * @param sys
-	// * is this a system transaction?
-	// */
-	// public Transaction(byte[] trans, boolean sys) {
-	// this.trans = trans;
-	// this.sys = sys;
-	// }
-	// }
-
-	/**
-	 * Two arrays derived from a Transaction list. This is returned by pollTransForEvent(). All code
-	 * (including the caller) should treat this as immutable, and not change the elements of the arrays.
-	 */
-	// public class TransArrayPair {
-	// public final byte[][] trans;
-	// public final boolean[] sys;
-	//
-	// /** convert the transList to two arrays, and clear transList so it is empty */
-	// public TransArrayPair(LinkedList<Transaction> transList) {
-	// int size = transList.size();
-	// trans = new byte[size][];
-	// sys = new boolean[size];
-	// int i = 0;
-	// for (Transaction t : transList) {
-	// trans[i] = t.getContentsDirect();
-	// sys[i] = t.isSystem();
-	// i++;
-	// }
-	// transList.clear();
-	// }
-	// }
-
 	/** a non-event sometimes added to the forCurr queue to unblock threadCurr */
 	public final EventImpl noEvent = new NoEvent();
 
@@ -122,8 +77,6 @@ class TransLists {
 	public synchronized Transaction[] pollTransForEvent() {
 		// Early return due to no transactions waiting
 		if (transEvent.size() == 0) {
-// log.debug(Settings.LOGM_REGRESSION_TESTS,
-// "Regression: Early pollTransForEvent() exit");
 			return new Transaction[0];
 		}
 
@@ -137,10 +90,6 @@ class TransLists {
 				// This event already contains transactions
 				// The next transaction is larger than the remaining space in the event
 				if (trans.size() > (Settings.maxTransactionBytesPerEvent - currEventSize)) {
-// log.debug(Settings.LOGM_REGRESSION_TESTS,
-// "Regression: Transaction size ({}) larger than remaining event space ({})",
-// trans.size(),
-// (Settings.maxTransactionBytesPerEvent - currEventSize));
 					break;
 				}
 

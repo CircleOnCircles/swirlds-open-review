@@ -14,8 +14,15 @@
 
 package com.swirlds.logging;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Definitions of all log markers.
@@ -251,16 +258,81 @@ public enum LogMarker {
 	private LogMarkerType type;
 	private Marker marker;
 
-	LogMarker(LogMarkerType type) {
+	LogMarker(final LogMarkerType type) {
 		this.type = type;
 		this.marker = MarkerManager.getMarker(name());
 	}
 
+	/**
+	 *
+	 * @return the com.swirlds.logging.LogMarkerType type instance referenced by this instance
+	 */
 	public LogMarkerType getType() {
 		return type;
 	}
 
+	/**
+	 *
+	 * @return the org.apache.logging.log4j.Marker type instance referenced by this instance
+	 */
 	public Marker getMarker() {
 		return marker;
 	}
+
+	/**
+	 * Predicate to determine whether this log marker is enabled to emit log entries.
+	 *
+	 * This formally excludes Level.OFF from the enabled check, in accordance with
+	 * intended semantics.
+	 *
+	 * Caveat: These assume that the log filters in sdk/log4j2.xml are defined at top-most level.
+	 * There is a known current (27 October 2020) issue with log4j2, which prevents log
+	 * levels from being correctly enabled/disabled unless filters are specified at
+	 * top-level.
+	 * 
+	 * @param loggingLevel The logging level to interrogate
+	 * @return true iff this log marker is enabled to emit log entries at the given logging level
+	 */
+	public boolean isEnabled(final Level loggingLevel) {
+		return loggingLevel != Level.OFF && LogManager.getLogger().isEnabled(loggingLevel, getMarker());
+	}
+
+	/**
+	 * Predicate to determine whether this log marker is enabled to emit log entries.
+	 *
+	 * This formally excludes Level.OFF from the enabled check, in accordance with
+	 * intended semantics.
+	 *
+	 * Caveat: These assume that the log filters in sdk/log4j2.xml are defined at top-most level.
+	 * There is a known current (27 October 2020) issue with log4j2, which prevents log
+	 * levels from being correctly enabled/disabled unless filters are specified at
+	 * top-level.
+	 *
+	 * @return true iff this log marker is enabled to emit log entries at some level
+	 */
+	public boolean isEnabled() {
+		return Arrays.stream(Level.values()).anyMatch(this::isEnabled);
+	}
+
+	/**
+	 * Log a message at debug log level, with this instance's marker string prepended.
+	 *
+	 * Caveat: These assume that the log filters in sdk/log4j2.xml are defined at top-most level.
+	 * There is a known current (27 October 2020) issue with log4j2, which prevents log
+	 * levels from being correctly enabled/disabled unless filters are specified at
+	 * top-level.
+	 *
+	 * @param formattedMessage The format-message string to be populated by evaluation of functor args
+	 * @param argSuppliers The functor args that provide individual arguments for the format
+	 *                     string when evaluated.
+	 */
+	public void debug(String formattedMessage, Supplier<?>... argSuppliers) {
+		if(isEnabled(Level.DEBUG)) {
+			String[] s = new String[argSuppliers.length];
+			for(int i = 0; i < argSuppliers.length; ++i)
+				s[i] = argSuppliers[i].get().toString();
+			LogManager.getLogger().debug(this.getMarker(), formattedMessage, s);
+		}
+	}
+
 }

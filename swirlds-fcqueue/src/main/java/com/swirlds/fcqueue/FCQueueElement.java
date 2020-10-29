@@ -15,9 +15,7 @@
 package com.swirlds.fcqueue;
 
 import com.swirlds.common.FastCopyable;
-import com.swirlds.common.crypto.Hashable;
 import com.swirlds.common.crypto.SerializableHashable;
-import com.swirlds.common.io.SelfSerializable;
 
 public interface FCQueueElement<E extends FCQueueElement<E>> extends FastCopyable<E>, SerializableHashable {
 }

@@ -779,7 +779,7 @@ public class Utilities extends DataStreamUtils {
 	 */
 	static String deadlocks() {
 		ThreadMXBean threadMB = ManagementFactory.getThreadMXBean();
-		long threadIds[] = threadMB.findDeadlockedThreads();
+		long[] threadIds = threadMB.findDeadlockedThreads();
 		if (threadIds == null) { // if it's null, then there are no deadlocked threads
 			return null;
 		}

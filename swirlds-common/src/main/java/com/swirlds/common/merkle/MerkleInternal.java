@@ -64,7 +64,7 @@ public interface MerkleInternal extends MerkleNode {
 	 * @param index
 	 * 		The position to look for the child.
 	 * @param <T>
-	 *           the type of the child
+	 * 		the type of the child
 	 */
 	<T extends MerkleNode> T getChild(final int index);
 

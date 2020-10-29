@@ -14,8 +14,6 @@
 
 package com.swirlds.common;
 
-import com.swirlds.common.merkle.MerkleNode;
-
 /**
  * An interface for the values in FCMap
  */

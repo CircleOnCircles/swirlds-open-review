@@ -96,27 +96,6 @@ public abstract class ArgumentTokenizer {
 							currArg.append(c);
 						}
 						break;
-//          case NORMAL_TOKEN_STATE:
-//            if (Character.isWhitespace(c)) {
-//              // Whitespace ends the token; start a new one
-//              argList.add(currArg.toString());
-//              currArg = new StringBuffer();
-//              state = NO_TOKEN_STATE;
-//            }
-//            else if (c == '\\') {
-//              // Backslash in a normal token: escape the next character
-//              escaped = true;
-//            }
-//            else if (c == '\'') {
-//              state = SINGLE_QUOTE_STATE;
-//            }
-//            else if (c == '"') {
-//              state = DOUBLE_QUOTE_STATE;
-//            }
-//            else {
-//              currArg.append(c);
-//            }
-//            break;
 					case NO_TOKEN_STATE:
 					case NORMAL_TOKEN_STATE:
 						switch (c) {

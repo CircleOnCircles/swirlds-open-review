@@ -38,8 +38,6 @@ public class InternalEventData {
 	private Instant timeReceived;
 	/** has this event been cleared (because it was old and should be discarded)? */
 	private boolean cleared = false;
-	/** is roundCreated frozen (won't change with address book changes)? True if an ancestor of a famous witness */
-	private boolean isFrozen = false;
 	/** is this both a witness and the fame election is over? */
 	private boolean isFameDecided;
 	/** is this part of the consensus order yet? */
@@ -102,7 +100,6 @@ public class InternalEventData {
 				", otherParent=" + EventUtils.toShortString(otherParent) +
 				", timeReceived=" + timeReceived +
 				", cleared=" + cleared +
-				", isFrozen=" + isFrozen +
 				", isFameDecided=" + isFameDecided +
 				", isConsensus=" + isConsensus +
 				", reachedConsTimestamp=" + reachedConsTimestamp +
@@ -197,22 +194,6 @@ public class InternalEventData {
 	 */
 	public void setCleared(boolean cleared) {
 		this.cleared = cleared;
-	}
-
-	/**
-	 * @return is roundCreated frozen (won't change with address book changes)? True if an ancestor of a famous
-	 * 		witness
-	 */
-	public boolean isFrozen() {
-		return isFrozen;
-	}
-
-	/**
-	 * @param frozen
-	 * 		is roundCreated frozen (won't change with address book changes)? True if an ancestor of a famous witness
-	 */
-	public void setFrozen(boolean frozen) {
-		isFrozen = frozen;
 	}
 
 	/**

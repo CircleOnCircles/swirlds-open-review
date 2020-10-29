@@ -24,7 +24,12 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.*;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.CHILD_COUNT;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.CLASS_DIFFERENT;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.DIFF_TYPE;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.HASH_DIFF;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.ITERATOR_MISMATCH;
+import static com.swirlds.common.merkle.synchronization.TreeComparer.MerkleNodeDiffReason.NODE_NULL;
 
 public abstract class TreeComparer {
 
@@ -58,10 +63,6 @@ public abstract class TreeComparer {
 				if (!Objects.equals(node1.getHash(), node2.getHash())) {
 					return new MerkleNodeDiff(node1, node2, HASH_DIFF);
 				}
-
-//				if (!Objects.equals(node1, node2)) {
-//					return new MerkleNodeDiff(node1, node2, NOT_EQUALS);
-//				}
 			} else {
 				MerkleInternal int1 = (MerkleInternal) node1;
 				MerkleInternal int2 = (MerkleInternal) node2;
